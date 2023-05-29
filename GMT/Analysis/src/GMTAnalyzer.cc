@@ -103,19 +103,27 @@ void GMTAnalyzer::fillTurnOnCurve(const MuonObj & aMuonCand,
   }
 
   ///Find the best matching L1 candidate
-  double deltaEta = 0.2;
+  double deltaR = 0.15;
   L1Obj selectedCand;
- 
-  //std::cout << " the pt of the pass candidate : "<<passCand.pt()<<"\n"; 
+
+   
   for(auto aCand: myL1Coll){
     bool pass = passQuality(aCand ,sysType, selType);
     if(!pass) continue;    
-    double delta = std::abs(aMuonCand.eta()-aCand.etaValue());
-    if(delta<deltaEta){
-      deltaEta = delta;
+    
+    double phiValue = aCand.phiValue();
+    if(phiValue>M_PI) phiValue-=2*M_PI;
+    
+    double dEta = std::abs(aMuonCand.l1eta()-aCand.etaValue());
+    double dPhi = std::abs(aMuonCand.l1phi()-phiValue);
+    if(dPhi>2*M_PI) dPhi=-2*M_PI;
+    double delta = sqrt(dEta*dEta + dPhi*dPhi);
+    if(delta<deltaR && selectedCand.ptValue()<aCand.ptValue()){
+      deltaR = delta;
       selectedCand = aCand;      
     }    
   }
+
   bool passPtCut = selectedCand.ptValue()>=ptCut && selectedCand.ptValue()>0;
    
   std::string tmpName = hName+"Pt"+std::to_string(ptCut);
@@ -193,37 +201,6 @@ void GMTAnalyzer::fillHistosForRecoMuon(const MuonObj & aRecoMuon){
   }
 }
 /////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/*double GMTAnalyzer::zResonance(const MuonObj aRecoMuon){
-
-	
-		if(aRecoMuon.charge() > 0){ theMuonLegPositive.SetPtEtaPhiM(aRecoMuon.pt(), aRecoMuon.eta(), aRecoMuon.phi(),nominalMuonMass);}
-                if(aRecoMuon.charge() < 0){ theMuonLegNegative.SetPtEtaPhiM(aRecoMuon.pt(), aRecoMuon.eta(), aRecoMuon.phi(),nominalMuonMass);}
-                theZResonance = theMuonLegPositive + theMuonLegNegative;
-                if(theZResonance.M() < 110 || theZResonance.M() > 70){ 
-                zmass = theZResonance.M();
-                }
-                return zmass;
-
-
-}*/	
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-/*double GMTAnalyzer::detaTagAndProbe(const MuonObj aRecoMuon){
-	MuonObj aTagCand; MuonObj aProbeCand; 
-	if( aRecoMuon.matchedisohlt() ==1 && fabs(aRecoMuon.eta()) < 0.75){
-        //tagFourVector.SetPtEtaPhiM(aRecoMuon.pt(), aRecoMuon.eta(), aRecoMuon.phi(),nominalMuonMass);
-        aTagCand = aRecoMuon;
-        }
-        if( fabs(aRecoMuon.eta()) > 0.83){
-        //probeFourVector.SetPtEtaPhiM(aRecoMuon.pt(), aRecoMuon.eta(), aRecoMuon.phi(),nominalMuonMass);
-        aProbeCand = aRecoMuon;
-        }
-        //double deta = tagFourVector.Eta() - probeFourVector.Eta();
-        double deta = aTagCand.eta() - aProbeCand.eta();
-        return deta;
-        	
-} */
 ////////////////////////////////////////////////////////////////////////////////
 bool GMTAnalyzer::analyze(const EventProxyBase& iEvent){
    
@@ -236,50 +213,36 @@ bool GMTAnalyzer::analyze(const EventProxyBase& iEvent){
   myL1ObjColl = myProxy.getL1ObjColl();
   myL1PhaseIIObjColl = myProxy.getL1PhaseIIObjColl();
   const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
-  MuonObj aPassCand ; MuonObj aTagCand; MuonObj aProbeCand;
-  if(myMuonColl.empty())return false;
+  if(myMuonColl.size() < 2 )return false;
 
-  for ( auto aMuonCand: myMuonColl){
-               {	
-	        if(aMuonCand.charge() > 0){ theMuonLegPositive.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(),nominalMuonMass);}
-                if(aMuonCand.charge() < 0){ theMuonLegNegative.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(),nominalMuonMass);}
+  MuonObj aTagCand =  myMuonColl.at(0);
+  bool tagPass = aTagCand.pt()>0 &&
+                 aTagCand.matchedisohlt() && 
+                 std::abs(aTagCand.eta())<0.75;
+  if(!tagPass) return true;
+  
+  myHistos_->fill1DHistogram("h1DPtTag", aTagCand.pt());
+  myHistos_->fill1DHistogram("h1DAbsEtaTag", std::abs(aTagCand.eta()));
+  
+  MuonObj aProbeCand;
+  for (auto aMuonCand: myMuonColl){  
+    bool isOMTFAcceptance = fabs(aMuonCand.eta())>0.83 && fabs(aMuonCand.eta())<1.24;      
+    if(isOMTFAcceptance && aMuonCand.tightID()){
+      aProbeCand = aMuonCand;
+      fillHistosForRecoMuon(aProbeCand);
+    }
+  }
+    
+/*  for ( auto aMuonCand: myMuonColl){
+               		        
+                if( aMuonCand.charge() > 0 ){theMuonLegPositive.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(),nominalMuonMass);}
+                if( aMuonCand.charge() < 0 ){theMuonLegNegative.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(),nominalMuonMass);}
                 theZResonance = theMuonLegPositive + theMuonLegNegative;
-                if(theZResonance.M() < 70 || theZResonance.M() > 110)continue;
-                 
                 std::string tmpName = "h1DDiMuonMass";
+                if(theZResonance.M() < 70 || theZResonance.M() > 110 ) continue;
                 myHistos_->fill1DHistogram(tmpName, theZResonance.M(), 1);
-               }
-     
-     		if( aMuonCand.matchedisohlt() ==1 && fabs(aMuonCand.eta()) < 0.75){
-     	        tagFourVector.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(),nominalMuonMass);
-                aTagCand = aMuonCand;      
                 
-                }
-                if( fabs(aMuonCand.eta()) > 0.83){
-                probeFourVector.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(),nominalMuonMass);
-                aProbeCand = aMuonCand;
-                }
-        double deta = tagFourVector.Eta() - probeFourVector.Eta();  
-        //double deta = aTagCand.eta() - aProbeCand.eta();   
-        if(deta < 0.5) aPassCand = aProbeCand ;
-        
-         /*
-        double dphi = pagFourVector.Phi() - probeFourVector.Phi();
-        if(dphi > TMath::Pi()) dphi = 2.0*TMath::Pi() - dphi;
-        if(dphi < 0) dphi = -1.0*dphi;
-        double delTP =  TMath::Sqrt( TMath::Power(deta,2) + TMath::Power(dphi,2) );
-        */
-  
-        
-        fillHistosForRecoMuon(aPassCand);
-        fillRateHisto(aPassCand, "uGMT","Tot");
-        fillRateHisto(aPassCand, "uGMT","VsPt");
-        fillRateHisto(aPassCand, "uGMT","VsEta");
-
- }
-  
-
-  
+ }*/ 
   return true;
 }
 //////////////////////////////////////////////////////////////////////////////

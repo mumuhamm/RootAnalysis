@@ -76,8 +76,8 @@ std::string GMTHistograms::getTemplateName(const std::string& name){
   if(name.find("Pt")!=std::string::npos) templateName = "h2DPtTemplate";
   if(name.find("HighPt")!=std::string::npos) templateName = "h2DHighPtTemplate";
   if(name.find("PtRecVsPtGen")!=std::string::npos) templateName = "h2DPtVsPtTemplate";
-
-
+  if(name.find("PtTag")!=std::string::npos) templateName = "h1DPtTagTemplate";
+  if(name.find("AbsEtaTag")!=std::string::npos) templateName = "h1DAbsEtaTagTemplate";
   
   if(name.find("EtaHit")!=std::string::npos) templateName = "h2DEtaHitTemplate";
   if(name.find("PhiHit")!=std::string::npos) templateName = "h2DPhiHitTemplate";
@@ -90,14 +90,9 @@ std::string GMTHistograms::getTemplateName(const std::string& name){
   if(name.find("RateVsEta")!=std::string::npos) templateName = "h2DRateVsEtaTemplate";
   if(name.find("RateVsPt")!=std::string::npos) templateName = "h2DRateVsPtTemplate";
   if(name.find("RateVsQuality")!=std::string::npos) templateName = "h2DRateVsQualityTemplate";
-  if(name.find("DeltaPhi")!=std::string::npos) templateName = "h2DDeltaPhiTemplate";
-  if(name.find("DeltaPt")!=std::string::npos) templateName = "h2DDeltaPtTemplate";
-  if(name.find("GhostsVsProcessor")!=std::string::npos) templateName = "h2DGhostsVsProcessorTemplate";
-  if(name.find("3DBending")!=std::string::npos) templateName = "h3DBendingTemplate";
   
   if(name.find("LLH")!=std::string::npos) templateName = "h1DLLHTemplate";
   if(name.find("HitsPattern")!=std::string::npos) templateName = "h1DHitsPatternTemplate";
-  if(name.find("h2DDeltaVsDelta")!=std::string::npos) templateName = "h2DDeltaVsDeltaTemplate";
   
   return templateName;
 }
@@ -113,8 +108,8 @@ void GMTHistograms::defineHistograms(){
  add1DHistogram("h1DDeltaEtaTemplate","",11,-0.83,0.83,file_);
  add1DHistogram("h1DDeltaPhiTemplate","",5*32,-M_PI,M_PI,file_);
  add1DHistogram("h1DDiMuonMassTemplate", "", 80, 70, 110, file_);
- 
-
+ add1DHistogram("h1DPtTagTemplate", "", 100, 0, 100, file_);
+ add1DHistogram("h1DAbsEtaTagTemplate", "", 50, 0, 2.5, file_);
 
  ///Efficiency histos
  add2DHistogram("h2DPtTemplate","",150,0,150,2,-0.5,1.5,file_);
@@ -134,23 +129,15 @@ void GMTHistograms::defineHistograms(){
  add2DHistogram("h2DRateTotTemplate","",404,1,202,404,1,202,file_);
  add2DHistogram("h2DRateVsEtaTemplate","",404,1,202,60,-3,3,file_);
 
- add2DHistogram("h2DDeltaPhiTemplate","",30,-1,1,2,-0.5,1.5,file_);
- add2DHistogram("h2DDeltaPtTemplate","",21,-0.5,20.5,2,-0.5,1.5,file_);
 
  add2DHistogram("h2DRateVsPtTemplate","",404,1,202,100,0,50,file_);
  
  add2DHistogram("h2DRateVsQualityTemplate","",404,1,202,201,-0.5,200.5,file_);
- add2DHistogram("h2DGhostsVsProcessorTemplate","",6,-0.5,5.5,5,-0.5,4.5,file_);
 
  //Likelihood histos
  add1DHistogram("h1DLLHTemplate","",40,0,20,file_);
  add1DHistogram("h1DHitsPatternTemplate","",101,-0.5,100.5,file_);
 
- //Pattern histos
- add3DHistogram("h3DBendingTemplate","",50, 0, 100, 296,-250.5,45.5, 18, -0.5, 17.5, file_);
-
- 
- add2DHistogram("h2DDeltaVsDeltaTemplate","",176,-150.5,25.5, 176,-150.5,25.5, file_);
  
  histosInitialized_ = true;
  }
@@ -690,6 +677,7 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     h1D->SetStats(kFALSE);
     gStyle->SetOptStat(0) ;
     gStyle->SetPalette(1) ;
+    
     RooRealVar mass("mass", "Z(#mu^{+}#mu^{-}) (GeV/c^{2})", 70, 110);
     RooDataHist dh("dh", "dh", mass, Import(*h1D));
     RooRealVar mu("mu", "mu", 91.18, 90, 93);
@@ -717,6 +705,7 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     zmassf->SetStats(0);
     zmassf->Draw();
     leg->Draw("same");
+    
     //h1D->Draw("");
     //h1D->Print();
     c->Print(TString::Format("fig_png/%s.png",hName.c_str()).Data());
