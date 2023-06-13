@@ -44,6 +44,7 @@ class GMTAnalyzer:public Analyzer{
   TLorentzVector theZResonance;
   TLorentzVector tagFourVector;
   TLorentzVector probeFourVector;
+  TLorentzVector randomMuonLeg;
   TVector3 tagVector;
   TVector3 probeVector;
 
@@ -60,7 +61,7 @@ class GMTAnalyzer:public Analyzer{
   void fillRateHisto(const MuonObj & aRecoMuon,
                     const std::string & sysType,
 		                const std::string & selType);
-
+  double customDeltaR(TLorentzVector T1, TLorentzVector T2);
   bool passQuality(const L1Obj & aL1Cand,
 		              const std::string & sysType,
 		              const std::string & selType = "");
