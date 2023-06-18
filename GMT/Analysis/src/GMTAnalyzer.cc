@@ -238,8 +238,8 @@ bool GMTAnalyzer::analyze(const EventProxyBase& iEvent){
   myHistos_->fill1DHistogram("h1DAbsEtaTag", std::abs(aTagCand.eta()));
 
   MuonObj aProbeCand;
-  double m_Z = 90;
-  double deltaM_Z = 20;
+  double m_Z = 91.1876;
+  double deltaM_Z = 2.4952;
   double tmpDelta = 2*deltaM_Z;
   for (auto aMuonCand: myMuonColl){   
       randomMuonLeg.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(), nominalMuonMass);
