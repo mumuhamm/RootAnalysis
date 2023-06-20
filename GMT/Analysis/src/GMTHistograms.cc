@@ -76,7 +76,10 @@ std::string GMTHistograms::getTemplateName(const std::string& name){
   if(name.find("HighPt")!=std::string::npos) templateName = "h2DHighPtTemplate";
   if(name.find("PtTag")!=std::string::npos) templateName = "h1DPtTagTemplate";
   if(name.find("AbsEtaTag")!=std::string::npos) templateName = "h1DAbsEtaTagTemplate";
-  
+  if(name.find("PtProbe")!=std::string::npos) templateName = "h1DPtProbeTemplate";
+  if(name.find("AbsEtaProbe")!=std::string::npos) templateName = "h1DAbsEtaProbeTemplate";
+
+   
   if(name.find("EtauGMT")!=std::string::npos) templateName = "h2DEtauGMTTemplate";
   if(name.find("PhiuGMT")!=std::string::npos) templateName = "h2DPhiuGMTTemplate";
   if(name.find("PtRecVsPtOMTF")!=std::string::npos) templateName = "h2DPtRecVsPtOMTFTemplate";
@@ -104,7 +107,9 @@ void GMTHistograms::defineHistograms(){
  add1DHistogram("h1DDeltaEtaTemplate","",11,-0.83,0.83,file_);
  add1DHistogram("h1DDeltaPhiTemplate","",5*32,-M_PI,M_PI,file_);
  add1DHistogram("h1DPtTagTemplate", "", 100, 0, 100, file_);
- add1DHistogram("h1DAbsEtaTagTemplate", "", 50, 0, 2.5, file_);
+ add1DHistogram("h1DAbsEtaTagTemplate", "", 60, 0, 2.4, file_);
+ add1DHistogram("h1DPtProbeTemplate", "", 100, 0, 100, file_);
+ add1DHistogram("h1DAbsEtaProbeTemplate", "", 60, 0.8, 1.4, file_);
 
  ///Efficiency histos
  add2DHistogram("h2DPtTemplate","",150,0,150,2,-0.5,1.5,file_);
@@ -154,8 +159,10 @@ void GMTHistograms::finalizeHistograms(){
   plotEffVsVar("uGMT", "Eta");
   plotEffVsVar("uGMT", "Phi");
   plotSingleHistogram("h2DuGMTPtRecVsPtOMTF");
-  plotSingleHistogram("h1DPtTag");
-  plotSingleHistogram("h1AbsEtaTag"); 
+  //plotSingleHistogram("h1DPtTag");
+  //plotSingleHistogram("h1DAbsEtaTag");
+  //plotSingleHistogram("h1DPtProbe");
+  plotSingleHistogram("h1DAbsEtaProbe"); 
   //Turn on curves for many pT thresholds.
   ///Lines for reference - Phase2 uGMT, and other algorithm shown
  /* for(int iPtCode=1;iPtCode<=30;++iPtCode){
@@ -656,7 +663,7 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     h1D->SetLineWidth(3);
     h1D->Scale(1.0/h1D->Integral(0,h1D->GetNbinsX()+1));    
     h1D->GetXaxis()->SetRange(1,h1D->GetNbinsX()+1);
-    h1D->SetXTitle("Variable");
+    h1D->SetXTitle(TString::Format("Histogram_%s",hName.c_str()).Data());
     //h1D->SetXTitle("Z(#mu^{+}#mu^{-}) (GeV/c^{2})");
     h1D->SetYTitle("Events");
     h1D->GetYaxis()->SetTitleOffset(1.4);

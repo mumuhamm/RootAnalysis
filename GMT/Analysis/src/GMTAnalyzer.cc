@@ -239,7 +239,7 @@ bool GMTAnalyzer::analyze(const EventProxyBase& iEvent){
 
   MuonObj aProbeCand;
   double m_Z = 91.1876;
-  double deltaM_Z = 2.4952;
+  double deltaM_Z = 20;
   double tmpDelta = 2*deltaM_Z;
   for (auto aMuonCand: myMuonColl){   
       randomMuonLeg.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(), nominalMuonMass);
@@ -252,6 +252,8 @@ bool GMTAnalyzer::analyze(const EventProxyBase& iEvent){
   if(aProbeCand.pt()<1) return true;
 
   probeFourVector.SetPtEtaPhiM(aProbeCand.pt(), aProbeCand.eta(), aProbeCand.phi(), nominalMuonMass);
+  myHistos_->fill1DHistogram("h1DPtProbe", aProbeCand.pt());
+  myHistos_->fill1DHistogram("h1DAbsEtaProbe", std::abs(aProbeCand.eta()));
   myHistos_->fill1DHistogram("h1DDiMuonMassTagProbe",(tagFourVector+probeFourVector).M());   
   fillHistosForRecoMuon(aProbeCand);
 
