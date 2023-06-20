@@ -179,6 +179,12 @@ void GMTAnalyzer::fillHistosForRecoMuon(const MuonObj & aRecoMuon){
   bool isGMTAcceptance = fabs(aRecoMuon.eta())<2.4;
   if(!isGMTAcceptance) return;
 
+  bool isOMTFAcceptance = fabs(aRecoMuon.eta())>0.83 && fabs(aRecoMuon.eta())<1.24;
+  if(!isOMTFAcceptance) return;
+  
+  myHistos_->fill1DHistogram("h1DPtProbe", aRecoMuon.pt());
+  myHistos_->fill1DHistogram("h1DAbsEtaProbe", std::abs(aRecoMuon.eta()));
+  
   std::string selType = "";
   for(int iCut=0;iCut<31;++iCut){
       fillTurnOnCurve(aRecoMuon, iCut, "OMTF", selType);
@@ -252,8 +258,6 @@ bool GMTAnalyzer::analyze(const EventProxyBase& iEvent){
   if(aProbeCand.pt()<1) return true;
 
   probeFourVector.SetPtEtaPhiM(aProbeCand.pt(), aProbeCand.eta(), aProbeCand.phi(), nominalMuonMass);
-  myHistos_->fill1DHistogram("h1DPtProbe", aProbeCand.pt());
-  myHistos_->fill1DHistogram("h1DAbsEtaProbe", std::abs(aProbeCand.eta()));
   myHistos_->fill1DHistogram("h1DDiMuonMassTagProbe",(tagFourVector+probeFourVector).M());   
   fillHistosForRecoMuon(aProbeCand);
 

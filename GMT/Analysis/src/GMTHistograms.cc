@@ -146,23 +146,24 @@ void GMTHistograms::finalizeHistograms(){
   AnalysisHistograms::finalizeHistograms();
   utilsL1RpcStyle()->cd();
   gErrorIgnoreLevel = kError;
-  
   //Panel with many turn-on curves
-  plotEffPanel("uGMT");
+  plotEffPanel("OMTF");
   //Panel with many turn-on curves for high pT range
-  plotEffPanel("uGMT", true);
+  plotEffPanel("OMTF", true);
+  //plotSingleHistogram("h1DPtTag");
+  //plotSingleHistogram("h1DAbsEtaTag");
+  //plotSingleHistogram("h1DPtProbe");
+  plotSingleHistogram("h1DAbsEtaProbe");
+  return;
 
-  
   //Efficiency as a function of ete.
   //Lines for selected points on the turn on curve shown
   plotEffVsEta("uGMT");
   plotEffVsVar("uGMT", "Eta");
   plotEffVsVar("uGMT", "Phi");
   plotSingleHistogram("h2DuGMTPtRecVsPtOMTF");
-  //plotSingleHistogram("h1DPtTag");
-  //plotSingleHistogram("h1DAbsEtaTag");
-  //plotSingleHistogram("h1DPtProbe");
-  plotSingleHistogram("h1DAbsEtaProbe"); 
+  
+   
   //Turn on curves for many pT thresholds.
   ///Lines for reference - Phase2 uGMT, and other algorithm shown
  /* for(int iPtCode=1;iPtCode<=30;++iPtCode){
@@ -663,13 +664,14 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     h1D->SetLineWidth(3);
     h1D->Scale(1.0/h1D->Integral(0,h1D->GetNbinsX()+1));    
     h1D->GetXaxis()->SetRange(1,h1D->GetNbinsX()+1);
+    //h1D->GetYaxis()->SetRangeUser(0.0,0.01);
     h1D->SetXTitle(TString::Format("Histogram_%s",hName.c_str()).Data());
     //h1D->SetXTitle("Z(#mu^{+}#mu^{-}) (GeV/c^{2})");
     h1D->SetYTitle("Events");
     h1D->GetYaxis()->SetTitleOffset(1.4);
     h1D->SetStats(kFALSE);
-    gStyle->SetOptStat(0) ;
-    gStyle->SetPalette(1) ;
+    //gStyle->SetOptStat(0) ;
+    //gStyle->SetPalette(1) ;
     /*
     RooRealVar mass("mass", "Z(#mu^{+}#mu^{-}) (GeV/c^{2})", 70, 110);
     RooDataHist dh("dh", "dh", mass, Import(*h1D));
@@ -700,7 +702,6 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     leg->Draw("same");
     */
     h1D->Draw("");
-    h1D->Print();
     c->Print(TString::Format("fig_png/%s.png",hName.c_str()).Data());
   }
 }
