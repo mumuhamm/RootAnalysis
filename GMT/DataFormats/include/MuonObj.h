@@ -13,6 +13,14 @@ public:
    nMatchedStations(nmatchedstations),isMedium(mediumID),isTight(tightID),l1Phi(l1phi),l1Eta(l1eta),chi2Norm(chi2norm),nAllMuons(muonmul),isMatchedHlt(matchedhlt),isMatchedIsoHlt(matchedisohlt){}
   virtual ~MuonObj() {}
 public:
+  void setCharge(Int_t charge) { theCharge = charge; }
+  void setPt(Float_t pt) { thePt = pt; }
+  void setEta(Float_t eta) { theEta = eta; }
+  void setPhi(Float_t phi) { thePhi = phi; }
+  void setTight(Bool_t tight) { isTight = tight; }
+  void setMedium(Bool_t medium) { isMedium = medium; }
+  void setMatchedIsoHlt(Bool_t matchedIsoHlt) { isMatchedIsoHlt = matchedIsoHlt; }
+
   Float_t pt() const { return thePt;}
   Float_t eta() const { return theEta;}
   Float_t phi() const { return thePhi;}

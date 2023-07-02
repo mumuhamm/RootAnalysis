@@ -15,7 +15,7 @@
 #include "TBranch.h"
 #include "L1Obj.h"
 
-struct OMTFHit{
+struct OMTFHitNano{
   
 public:
   
@@ -23,7 +23,7 @@ public:
   
 };
 
-std::ostream& operator<< (std::ostream& stream, const OMTFHit& aHit); 
+std::ostream& operator<< (std::ostream& stream, const OMTFHitNano& aHit); 
 
 
    class EventProxyOMTFNANOAOD: public EventProxyBase{
@@ -42,7 +42,7 @@ std::ostream& operator<< (std::ostream& stream, const OMTFHit& aHit);
      const L1ObjColl  *getL1ObjColl() const { return myL1ObjColl;};
      const L1PhaseIIObjColl  *getL1PhaseIIObjColl() const { return myL1PhaseIIObjColl;};
      const MuonObjColl *getRecoMuonObjColl() const { return myMuonObjColl;}; 
-     std::vector<OMTFHit> getHits() const;
+     std::vector<OMTFHitNano> getHits() const;
 
 
    
@@ -50,8 +50,8 @@ std::ostream& operator<< (std::ostream& stream, const OMTFHit& aHit);
    MuonObj aMuonObj;
    private:
    //Declaration of fill function : 
-   void fillnanoL1ObjColl();
-   void fillnanoMuonObjColl();
+   void fillnanoL1ObjColl() ;
+   void fillnanoMuonObjColl() ;
    //Declaration of initiations of branches: 
 
      Int_t           nL1Mu;

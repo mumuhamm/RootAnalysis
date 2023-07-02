@@ -78,7 +78,7 @@ std::string GMTHistograms::getTemplateName(const std::string& name){
   if(name.find("AbsEtaTag")!=std::string::npos) templateName = "h1DAbsEtaTagTemplate";
   if(name.find("PtProbe")!=std::string::npos) templateName = "h1DPtProbeTemplate";
   if(name.find("AbsEtaProbe")!=std::string::npos) templateName = "h1DAbsEtaProbeTemplate";
-
+  if(name.find("DiMuonMass")!=std::string::npos) templateName = "h1DDiMuonMassTemplate";
    
   if(name.find("EtauGMT")!=std::string::npos) templateName = "h2DEtauGMTTemplate";
   if(name.find("PhiuGMT")!=std::string::npos) templateName = "h2DPhiuGMTTemplate";
@@ -110,6 +110,9 @@ void GMTHistograms::defineHistograms(){
  add1DHistogram("h1DAbsEtaTagTemplate", "", 60, 0, 2.4, file_);
  add1DHistogram("h1DPtProbeTemplate", "", 100, 0, 100, file_);
  add1DHistogram("h1DAbsEtaProbeTemplate", "", 60, 0.8, 1.4, file_);
+ add1DHistogram("h1DDiMuonMassTemplate", "", 80, 70, 110, file_); 
+
+
 
  ///Efficiency histos
  add2DHistogram("h2DPtTemplate","",150,0,150,2,-0.5,1.5,file_);
@@ -150,10 +153,11 @@ void GMTHistograms::finalizeHistograms(){
   plotEffPanel("OMTF");
   //Panel with many turn-on curves for high pT range
   plotEffPanel("OMTF", true);
-  //plotSingleHistogram("h1DPtTag");
-  //plotSingleHistogram("h1DAbsEtaTag");
-  //plotSingleHistogram("h1DPtProbe");
+  plotSingleHistogram("h1DPtTag");
+  plotSingleHistogram("h1DAbsEtaTag");
+  plotSingleHistogram("h1DPtProbe");
   plotSingleHistogram("h1DAbsEtaProbe");
+   plotSingleHistogram("h1DDiMuonMassTagProbe"); 
   return;
 
   //Efficiency as a function of ete.
@@ -244,7 +248,7 @@ void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh){
 
   TCanvas* c = new TCanvas(TString::Format("EffVsPt_%s",sysType.c_str()),
 			   TString::Format("EffVsPt_%s",sysType.c_str()),
-			   460,500);
+			   600,600);
 
   TLegend l(0.6513158,0.1673729,0.8903509,0.470339,NULL,"brNDC");
   l.SetTextSize(0.05);

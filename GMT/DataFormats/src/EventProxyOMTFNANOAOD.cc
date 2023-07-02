@@ -1,4 +1,7 @@
-nclude "EventProxyOMTFNANOAOD.h"
+#include "EventProxyOMTFNANOAOD.h"
+
+
+
 EventProxyOMTFNANOAOD::EventProxyOMTFNANOAOD(){
      myL1ObjColl = new L1ObjColl();
      myMuonObjColl = new MuonObjColl();
@@ -21,7 +24,7 @@ void EventProxyOMTFNANOAOD::init(std::vector<std::string> const& iFileNames){
   fChain->SetBranchStatus("*",0);
   fChain->SetMakeClass(0);
 }
- void  EventProxyOMTFNANOAOD::fillnanoL1ObjColl() const{
+ void  EventProxyOMTFNANOAOD::fillnanoL1ObjColl() {
     fChain->SetBranchStatus("nL1Mu", 1);
     fChain->SetBranchStatus("L1Mu_hwCharge", 1);
     fChain->SetBranchStatus("L1Mu_hwDXY", 1);
@@ -43,7 +46,7 @@ void EventProxyOMTFNANOAOD::init(std::vector<std::string> const& iFileNames){
              
             }
 }
-void EventProxyOMTFNANOAOD::fillnanoMuonObjColl() const{
+void EventProxyOMTFNANOAOD::fillnanoMuonObjColl() {
      fChain->SetBranchStatus("nMuon", 1);
     fChain->SetBranchStatus("Muon_mediumId", 1);
     fChain->SetBranchStatus("Muon_pfIsoId", 1);
@@ -58,19 +61,26 @@ void EventProxyOMTFNANOAOD::fillnanoMuonObjColl() const{
     fChain->SetBranchStatus("HLT_IsoMu24", 1);
     fChain->SetBranchStatus("HLT_IsoMu27", 1);
          for (Int_t i = 0; i < nMuon; ++i) {
-            aMuonObj.theCharge = Muon_charge[i];
+            aMuonObj.setCharge(Muon_charge[i]);
+            aMuonObj.setPt(Muon_pt[i]);
+            aMuonObj.setEta(Muon_eta[i]);
+            aMuonObj.setPhi(Muon_phi[i]);
+            aMuonObj.setTight(Muon_tightId[i]);
+            aMuonObj.setMedium(Muon_mediumId[i]);
+            aMuonObj.setMatchedIsoHlt(HLT_IsoMu20 || HLT_IsoMu24 || HLT_IsoMu27);
+            /*aMuonObj.theCharge = Muon_charge[i];
             aMuonObj.thePt = Muon_pt[i];
             aMuonObj.theEta = Muon_eta[i];
             aMuonObj.thePhi = Muon_phi[i];
             aMuonObj.isTight = Muon_tightId[i];
             aMuonObj.isMedium = Muon_mediumId[i];
-            aMuonObj.isMatchedIsoHlt = (HLT_IsoMu20 || HLT_IsoMu24 || HLT_IsoMu27);
-            myMuonObjColl->push_back(aMuonObj, false, 0.0);
+            aMuonObj.isMatchedIsoHlt = (HLT_IsoMu20 || HLT_IsoMu24 || HLT_IsoMu27);*/
+            myMuonObjColl->addMuonObj(aMuonObj);
             
         }
 }
-std::vector<OMTFHit> EventProxyOMTFNANOAOD::getHits() const {
-  std::vector<OMTFHit> hits;
+std::vector<OMTFHitNano> EventProxyOMTFNANOAOD::getHits() const {
+  std::vector<OMTFHitNano> hits;
   // TODO: Implement the logic to populate the `hits` vector
   return hits;
 }

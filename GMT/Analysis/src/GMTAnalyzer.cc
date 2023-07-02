@@ -9,6 +9,7 @@
 #include "TreeAnalyzer.h"
 #include "GMTAnalyzer.h"
 #include "EventProxyOMTF.h"
+#include "EventProxyOMTFNANOAOD.h"
 #include "TLorentzVector.h"
 #include "TF1.h"
 #include "TH1D.h"
