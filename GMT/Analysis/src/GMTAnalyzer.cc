@@ -224,12 +224,30 @@ bool GMTAnalyzer::analyze(const EventProxyBase& iEvent){
    
    clear();
    
-   const EventProxyOMTF & myProxy = static_cast<const EventProxyOMTF&>(iEvent);
+  bool useNanoAOD = false; 
 
-  myEventId = myProxy.getEventId();
-  myMuonObjColl = myProxy.getRecoMuonObjColl();
-  myL1ObjColl = myProxy.getL1ObjColl();
-  myL1PhaseIIObjColl = myProxy.getL1PhaseIIObjColl();
+if (useNanoAOD) {
+    const EventProxyOMTFNANOAOD& myProxy = dynamic_cast<const EventProxyOMTFNANOAOD&>(iEvent);
+    const_cast<EventProxyOMTFNANOAOD&>(myProxy).fillL1ObjColl();
+    const_cast<EventProxyOMTFNANOAOD&>(myProxy).fillMuonObjColl();
+    myMuonObjColl = const_cast<EventProxyOMTFNANOAOD&>(myProxy).getRecoMuonObjColl();
+    myL1ObjColl = const_cast<EventProxyOMTFNANOAOD&>(myProxy).getL1ObjColl();
+/*
+ //cannot perform a static_cast from a const EventProxyBase& to EventProxyOMTFNANOAOD& because the source object (iEvent) is const, while the destination type (EventProxyOMTFNANOAOD&) is non-const.
+ //To resolve this issue, you can use const_cast to remove the const qualifier temporarily. 
+
+    EventProxyOMTFNANOAOD& myProxy = static_cast< EventProxyOMTFNANOAOD&>(iEvent);
+    myProxy.fillL1ObjColl();  
+    myProxy.fillMuonObjColl();
+    myMuonObjColl = myProxy.getRecoMuonObjColl();
+    myL1ObjColl = myProxy.getL1ObjColl();*/
+} else {
+    const EventProxyOMTF& myProxy = static_cast<const EventProxyOMTF&>(iEvent);
+    myEventId = myProxy.getEventId();
+    myMuonObjColl = myProxy.getRecoMuonObjColl();
+    myL1ObjColl = myProxy.getL1ObjColl();
+}
+
   const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   
 

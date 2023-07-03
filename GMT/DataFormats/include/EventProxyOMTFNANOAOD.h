@@ -26,7 +26,7 @@ public:
 std::ostream& operator<< (std::ostream& stream, const OMTFHitNano& aHit); 
 
 
-   class EventProxyOMTFNANOAOD: public EventProxyBase{
+class EventProxyOMTFNANOAOD: public EventProxyBase{
 
    public:
 
@@ -44,7 +44,8 @@ std::ostream& operator<< (std::ostream& stream, const OMTFHitNano& aHit);
      const MuonObjColl *getRecoMuonObjColl() const { return myMuonObjColl;}; 
      std::vector<OMTFHitNano> getHits() const;
 
-
+   void fillL1ObjColl() { fillnanoL1ObjColl(); }
+   void fillMuonObjColl() { fillnanoMuonObjColl(); }
    
    L1Obj aL1Obj;
    MuonObj aMuonObj;
