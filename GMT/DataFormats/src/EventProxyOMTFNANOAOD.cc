@@ -23,8 +23,8 @@ void EventProxyOMTFNANOAOD::init(std::vector<std::string> const& iFileNames){
   EventProxyBase::init(iFileNames);
   fChain->SetBranchStatus("*",0);
   fChain->SetMakeClass(0);
-}
- void  EventProxyOMTFNANOAOD::fillnanoL1ObjColl() {
+
+    //L1Object Block 
     fChain->SetBranchStatus("nL1Mu", 1);
     fChain->SetBranchStatus("L1Mu_hwCharge", 1);
     fChain->SetBranchStatus("L1Mu_hwDXY", 1);
@@ -35,19 +35,8 @@ void EventProxyOMTFNANOAOD::init(std::vector<std::string> const& iFileNames){
     fChain->SetBranchStatus("L1Mu_phi", 1);
     fChain->SetBranchStatus("L1Mu_phiAtVtx", 1);
     fChain->SetBranchStatus("L1Mu_pt", 1);
-          for( Int_t i =0; i< nL1Mu; ++i){
-              aL1Obj.eta  = L1Mu_eta[i];
-	      aL1Obj.phi  = L1Mu_phi[i];
-              aL1Obj.pt   = L1Mu_pt[i];
-              aL1Obj.charge  = L1Mu_hwCharge[i];
-              aL1Obj.bx        = L1Mu_bx[i];
-              aL1Obj.q    = L1Mu_hwQual[i];
-              myL1ObjColl->push_back(aL1Obj, false, 0.0);
-             
-            }
-}
-void EventProxyOMTFNANOAOD::fillnanoMuonObjColl() {
-     fChain->SetBranchStatus("nMuon", 1);
+    //MuonObject Block 
+    fChain->SetBranchStatus("nMuon", 1);
     fChain->SetBranchStatus("Muon_mediumId", 1);
     fChain->SetBranchStatus("Muon_pfIsoId", 1);
     fChain->SetBranchStatus("Muon_softId", 1);
@@ -60,6 +49,21 @@ void EventProxyOMTFNANOAOD::fillnanoMuonObjColl() {
     fChain->SetBranchStatus("HLT_IsoMu20", 1);
     fChain->SetBranchStatus("HLT_IsoMu24", 1);
     fChain->SetBranchStatus("HLT_IsoMu27", 1);
+
+}
+ void  EventProxyOMTFNANOAOD::fillnanoL1ObjColl() {
+          for( Int_t i =0; i< nL1Mu; ++i){
+              aL1Obj.eta  = L1Mu_eta[i];
+	      aL1Obj.phi  = L1Mu_phi[i];
+              aL1Obj.pt   = L1Mu_pt[i];
+              aL1Obj.charge  = L1Mu_hwCharge[i];
+              aL1Obj.bx        = L1Mu_bx[i];
+              aL1Obj.q    = L1Mu_hwQual[i];
+              myL1ObjColl->push_back(aL1Obj, false, 0.0);
+             
+            }
+}
+void EventProxyOMTFNANOAOD::fillnanoMuonObjColl() {
          for (Int_t i = 0; i < nMuon; ++i) {
             aMuonObj.setCharge(Muon_charge[i]);
             aMuonObj.setPt(Muon_pt[i]);
@@ -68,13 +72,6 @@ void EventProxyOMTFNANOAOD::fillnanoMuonObjColl() {
             aMuonObj.setTight(Muon_tightId[i]);
             aMuonObj.setMedium(Muon_mediumId[i]);
             aMuonObj.setMatchedIsoHlt(HLT_IsoMu20 || HLT_IsoMu24 || HLT_IsoMu27);
-            /*aMuonObj.theCharge = Muon_charge[i];
-            aMuonObj.thePt = Muon_pt[i];
-            aMuonObj.theEta = Muon_eta[i];
-            aMuonObj.thePhi = Muon_phi[i];
-            aMuonObj.isTight = Muon_tightId[i];
-            aMuonObj.isMedium = Muon_mediumId[i];
-            aMuonObj.isMatchedIsoHlt = (HLT_IsoMu20 || HLT_IsoMu24 || HLT_IsoMu27);*/
             myMuonObjColl->addMuonObj(aMuonObj);
             
         }

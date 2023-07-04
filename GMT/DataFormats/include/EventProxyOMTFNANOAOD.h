@@ -43,9 +43,11 @@ class EventProxyOMTFNANOAOD: public EventProxyBase{
      const L1PhaseIIObjColl  *getL1PhaseIIObjColl() const { return myL1PhaseIIObjColl;};
      const MuonObjColl *getRecoMuonObjColl() const { return myMuonObjColl;}; 
      std::vector<OMTFHitNano> getHits() const;
+   
 
-   void fillL1ObjColl() { fillnanoL1ObjColl(); }
-   void fillMuonObjColl() { fillnanoMuonObjColl(); }
+     //These two wrapper functions are serving the of accessability of the main functions defined in the private section
+     void fillL1ObjColl() { fillnanoL1ObjColl(); }
+     void fillMuonObjColl() { fillnanoMuonObjColl(); }
    
    L1Obj aL1Obj;
    MuonObj aMuonObj;

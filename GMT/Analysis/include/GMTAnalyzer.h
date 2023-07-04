@@ -49,16 +49,17 @@ class GMTAnalyzer:public Analyzer{
   TVector3 probeVector;
 
   void setHistos(GMTHistograms *histos) { myHistos_ = histos;};
+  void parseProcessName(); 
+private:
+  
+  
+  void fillHistosForRecoMuon(const TLorentzVector & aRecoMuon4Vector);
 
- private:
-
-  void fillHistosForRecoMuon(const MuonObj & aRecoMuon);
-
-  void fillTurnOnCurve(const MuonObj & aRecoMuon,
+  void fillTurnOnCurve(const TLorentzVector & aMuonCand4Vector,
                       const int & ptCut, const std::string & sysType,
 		                  const std::string & selType);
 
-  void fillRateHisto(const MuonObj & aRecoMuon,
+  void fillRateHisto(const TLorentzVector & aRecoMuon4Vector,
                     const std::string & sysType,
 		                const std::string & selType);
   double customDeltaR(TLorentzVector T1, TLorentzVector T2);
@@ -67,6 +68,7 @@ class GMTAnalyzer:public Analyzer{
 		              const std::string & selType = "");
   double zResonance(const MuonObj  aRecoMuon);
   double detaTagAndProbe(const MuonObj  aRecoMuon); 
+  std::string inputType;
   ///Histograms for this analysis
   GMTHistograms *myHistos_;
 
