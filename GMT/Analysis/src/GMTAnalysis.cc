@@ -2,6 +2,7 @@
 #include "TreeAnalyzer.h"
 #include "GMTAnalyzer.h"
 #include "EventProxyOMTF.h"
+#include "EventProxyOMTFNANOAOD.h"
 #include "TFile.h"
 #include "TStopwatch.h"
 
@@ -28,9 +29,18 @@ int main(int argc, char ** argv) {
 
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini(cfgFileName, pt);
-  
+  std::string inputType; 
   std::string processName = pt.get<std::string>("TreeAnalyzer.processName","Test");
+  std::cout<< " print the process name : "<< processName<< "\n"; 
   
+  if (processName.find("_nanoAOD") != std::string::npos) {
+        inputType = "nanoAOD";
+    } else if (processName.find("_omtfTree") != std::string::npos) {
+        inputType = "omtfTree";
+    } else {
+        std::cout << "Invalid process name!" << std::endl;
+    }
+
   //Tell Root we want to be multi-threaded
   ROOT::EnableThreadSafety();
   //When threading, also have to keep ROOT from logging all TObjects into a list
@@ -38,24 +48,49 @@ int main(int argc, char ** argv) {
   
   //----------------------------------------------------------
   std::vector<Analyzer*> myAnalyzers;  
-  EventProxyOMTF *myEvent = new EventProxyOMTF();  
-  myAnalyzers.push_back(new GMTAnalyzer(processName+"Analyzer"));
+  bool useNanoAOD = (inputType == "nanoAOD");
+  if(useNanoAOD) {
+    EventProxyOMTFNANOAOD *myEvent = new EventProxyOMTFNANOAOD();
+    myAnalyzers.push_back(new GMTAnalyzer(processName+"Analyzer"));
+
+    TreeAnalyzer *tree = new TreeAnalyzer("TreeAnalyzer",cfgFileName, myEvent);
+    tree->init(myAnalyzers);
+    int nEventsAnalysed = tree->loop();
+    tree->finalize();
+
+    timer.Stop();
+    Double_t rtime = timer.RealTime();
+    Double_t ctime = timer.CpuTime();
+    printf("Analysed events: %d \n",nEventsAnalysed);
+    printf("RealTime=%f seconds, CpuTime=%f seconds\n",rtime,ctime);
+    printf("%4.2f events / RealTime second .\n", nEventsAnalysed/rtime);
+    printf("%4.2f events / CpuTime second .\n", nEventsAnalysed/ctime);
+    tree->scaleHistograms();
+    for(unsigned int i=0;i<myAnalyzers.size();++i) delete myAnalyzers[i];
+    delete tree;
+    delete myEvent;
+  }
+  else {
+    EventProxyOMTF *myEvent = new EventProxyOMTF();
+    myAnalyzers.push_back(new GMTAnalyzer(processName+"Analyzer"));
+
+    TreeAnalyzer *tree = new TreeAnalyzer("TreeAnalyzer",cfgFileName, myEvent);
+    tree->init(myAnalyzers);
+    int nEventsAnalysed = tree->loop();
+    tree->finalize();
+
+    timer.Stop();
+    Double_t rtime = timer.RealTime();
+    Double_t ctime = timer.CpuTime();
+    printf("Analysed events: %d \n",nEventsAnalysed);
+    printf("RealTime=%f seconds, CpuTime=%f seconds\n",rtime,ctime);
+    printf("%4.2f events / RealTime second .\n", nEventsAnalysed/rtime);
+    printf("%4.2f events / CpuTime second .\n", nEventsAnalysed/ctime);
+    tree->scaleHistograms();
+    for(unsigned int i=0;i<myAnalyzers.size();++i) delete myAnalyzers[i];
+    delete tree;
+    delete myEvent;
+    
+  }  
   
-  TreeAnalyzer *tree = new TreeAnalyzer("TreeAnalyzer",cfgFileName, myEvent);
-  tree->init(myAnalyzers);
-  int nEventsAnalysed = tree->loop();	  
-  tree->finalize();
-  
-  timer.Stop();
-  Double_t rtime = timer.RealTime();
-  Double_t ctime = timer.CpuTime();
-  printf("Analysed events: %d \n",nEventsAnalysed);
-  printf("RealTime=%f seconds, CpuTime=%f seconds\n",rtime,ctime);
-  printf("%4.2f events / RealTime second .\n", nEventsAnalysed/rtime);
-  printf("%4.2f events / CpuTime second .\n", nEventsAnalysed/ctime);
-  tree->scaleHistograms();
-  for(unsigned int i=0;i<myAnalyzers.size();++i) delete myAnalyzers[i];
-  delete tree;
-  delete myEvent;
-  return 0;
 }
