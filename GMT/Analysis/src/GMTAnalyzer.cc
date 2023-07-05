@@ -274,7 +274,8 @@ if (useNanoAOD) {
 
 
   const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
-  if(myMuonColl.size() < 2 )return false;
+  if(myMuonColl.empty()) return false;
+  if(myMuonColl.size() !=2 )return false;
 
   MuonObj aTagCand =  myMuonColl.at(0);
   std::cout<< " the value of the pT :    "<< aTagCand.pt()<< "\n";

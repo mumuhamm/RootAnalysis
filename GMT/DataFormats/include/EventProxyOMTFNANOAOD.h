@@ -46,15 +46,13 @@ class EventProxyOMTFNANOAOD: public EventProxyBase{
    
 
      //These two wrapper functions are serving the of accessability of the main functions defined in the private section
-     void fillL1ObjColl() { fillnanoL1ObjColl(); }
-     void fillMuonObjColl() { fillnanoMuonObjColl(); }
+     void  fillnanoL1ObjColl(); 
+     void  fillnanoMuonObjColl(); 
    
-   L1Obj aL1Obj;
-   MuonObj aMuonObj;
+     mutable  L1Obj aL1Obj;
+     mutable  MuonObj aMuonObj;
    private:
-   //Declaration of fill function : 
-   void fillnanoL1ObjColl() ;
-   void fillnanoMuonObjColl() ;
+   
    //Declaration of initiations of branches: 
 
      Int_t           nL1Mu;

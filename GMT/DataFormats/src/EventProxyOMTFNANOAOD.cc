@@ -21,7 +21,7 @@ void EventProxyOMTFNANOAOD::init(std::vector<std::string> const& iFileNames){
 
   treeName_ = "Events";   
   EventProxyBase::init(iFileNames);
-  fChain->SetBranchStatus("*",0);
+  fChain->SetBranchStatus("*",1);
   fChain->SetMakeClass(0);
 
    TBranch        *b_nL1Mu;   	
@@ -77,39 +77,13 @@ void EventProxyOMTFNANOAOD::init(std::vector<std::string> const& iFileNames){
   fChain->SetBranchAddress("HLT_IsoMu27", &HLT_IsoMu27, &b_HLT_IsoMu27);
 
 
-/*
-    //L1Object Block 
-    fChain->SetBranchStatus("nL1Mu", 1);
-    fChain->SetBranchStatus("L1Mu_hwCharge", 1);
-    fChain->SetBranchStatus("L1Mu_hwDXY", 1);
-    fChain->SetBranchStatus("L1Mu_bx", 1);
-    fChain->SetBranchStatus("L1Mu_hwQual", 1);
-    fChain->SetBranchStatus("L1Mu_eta", 1);
-    fChain->SetBranchStatus("L1Mu_etaAtVtx", 1);
-    fChain->SetBranchStatus("L1Mu_phi", 1);
-    fChain->SetBranchStatus("L1Mu_phiAtVtx", 1);
-    fChain->SetBranchStatus("L1Mu_pt", 1);
-    //MuonObject Block 
-    fChain->SetBranchStatus("nMuon", 1);
-    fChain->SetBranchStatus("Muon_mediumId", 1);
-    fChain->SetBranchStatus("Muon_pfIsoId", 1);
-    fChain->SetBranchStatus("Muon_softId", 1);
-    fChain->SetBranchStatus("Muon_tightId", 1);
-    fChain->SetBranchStatus("Muon_charge", 1);
-    fChain->SetBranchStatus("Muon_pdgId", 1);
-    fChain->SetBranchStatus("Muon_eta", 1);
-    fChain->SetBranchStatus("Muon_phi", 1);
-    fChain->SetBranchStatus("Muon_pt", 1);
-    fChain->SetBranchStatus("HLT_IsoMu20", 1);
-    fChain->SetBranchStatus("HLT_IsoMu24", 1);
-    fChain->SetBranchStatus("HLT_IsoMu27", 1);
-*/
+
 }
 void  EventProxyOMTFNANOAOD::fillnanoL1ObjColl() {
           for( Int_t i =0; i< nL1Mu; ++i){
-              std::cout<< " the iteration: "<< i << "\t and the eta: "<< L1Mu_eta[i]<< "\n";
+              //std::cout<< " the iteration: "<< i << "\t and the eta: "<< L1Mu_eta[i]<< "\n";
               aL1Obj.eta  = L1Mu_eta[i];
-              std::cout<< " now the eta from the asigned object : "<< aL1Obj.eta<< "\n"; 
+              //std::cout<< " now the eta from the asigned object : "<< aL1Obj.eta<< "\n"; 
 	      aL1Obj.phi  = L1Mu_phi[i];
               aL1Obj.pt   = L1Mu_pt[i];
               aL1Obj.charge  = L1Mu_hwCharge[i];
