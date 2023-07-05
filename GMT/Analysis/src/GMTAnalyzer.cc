@@ -92,6 +92,7 @@ bool GMTAnalyzer::passQuality(const L1Obj & aL1Cand,
      return true;
    }   
    return false;
+
 }
 // //////////////////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////////////////
@@ -101,6 +102,7 @@ void GMTAnalyzer::fillTurnOnCurve(const TLorentzVector & aMuonCand4Vector,
 				                          const std::string & selType){
   
  //int is important for histo name construction
+
   int ptCut = GMTHistograms::ptBins[iPtCut];
   const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
   std::string hName = "h2DGmt"+selType;
@@ -166,6 +168,8 @@ void GMTAnalyzer::fillRateHisto(const TLorentzVector & aRecoMuon4Vector,
 				                        const std::string & selType){
 
   //Generator level information is not available for the neutrino sample
+ 
+
   if(name()=="NU_RATEAnalyzer" && aRecoMuon4Vector.Pt()>0.0) return;
 
   const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
@@ -183,10 +187,14 @@ void GMTAnalyzer::fillRateHisto(const TLorentzVector & aRecoMuon4Vector,
   if(selType.find("Tot")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon4Vector.Pt(),selectedCand.ptValue());
   if(selType.find("VsEta")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon4Vector.Pt(),pass*aRecoMuon4Vector.Eta()+(!pass)*99);
   if(selType.find("VsPt")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon4Vector.Pt(),pass*aRecoMuon4Vector.Pt()+(!pass)*(-100));
+
+
 }
 // //////////////////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////////////////
 void GMTAnalyzer::fillHistosForRecoMuon(const TLorentzVector & aRecoMuon4Vector){   
+
+ 
 
   bool isGMTAcceptance = fabs(aRecoMuon4Vector.Eta())<2.4;
   if(!isGMTAcceptance) return;
@@ -217,6 +225,8 @@ void GMTAnalyzer::fillHistosForRecoMuon(const TLorentzVector & aRecoMuon4Vector)
     fillTurnOnCurve(aRecoMuon4Vector, iCut, "OMTF", selType);
     fillTurnOnCurve(aRecoMuon4Vector, iCut, "uGMT", selType);
   }
+
+
 }
 //////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
@@ -240,12 +250,14 @@ bool GMTAnalyzer::analyze(const EventProxyBase& iEvent){
 
 if (useNanoAOD) {
     const EventProxyOMTFNANOAOD& myProxy = dynamic_cast<const EventProxyOMTFNANOAOD&>(iEvent);
-    const_cast<EventProxyOMTFNANOAOD&>(myProxy).fillL1ObjColl();
-    const_cast<EventProxyOMTFNANOAOD&>(myProxy).fillMuonObjColl();
+    const_cast<EventProxyOMTFNANOAOD&>(myProxy).fillnanoL1ObjColl();
+    const_cast<EventProxyOMTFNANOAOD&>(myProxy).fillnanoMuonObjColl();
     myMuonObjColl = const_cast<EventProxyOMTFNANOAOD&>(myProxy).getRecoMuonObjColl();
     myL1ObjColl = const_cast<EventProxyOMTFNANOAOD&>(myProxy).getL1ObjColl();
  //cannot perform a static_cast from a const EventProxyBase& to EventProxyOMTFNANOAOD& because the source object (iEvent) is const, while the destination type (EventProxyOMTFNANOAOD&) is non-const.
  //To resolve this issue, you can use const_cast to remove the const qualifier temporarily. 
+    
+
 
 } else {
     const EventProxyOMTF& myProxy = static_cast<const EventProxyOMTF&>(iEvent);
@@ -254,12 +266,18 @@ if (useNanoAOD) {
     myL1ObjColl = myProxy.getL1ObjColl();
 }
 
-  const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
-  
+  /*const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
+  if(myMuonColl.empty()) return false; 
+  MuonObj aTagCand =  myMuonColl.at(0);
+  std::cout<< " the pt of the tag muon: "<< aTagCand.pt()<< "\n";
+*/
 
+
+  const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   if(myMuonColl.size() < 2 )return false;
 
   MuonObj aTagCand =  myMuonColl.at(0);
+  std::cout<< " the value of the pT :    "<< aTagCand.pt()<< "\n";
   bool tagPass = aTagCand.pt()>20 && aTagCand.matchedisohlt();
   if(!tagPass) return true;
   
@@ -282,7 +300,7 @@ if (useNanoAOD) {
   }
   bool isOMTFAcceptanceP = fabs(aProbeCand.eta())>0.83 && fabs(aProbeCand.eta())<1.24;
   if(!isOMTFAcceptanceP) return false;
-  if(aProbeCand.pt()<1) return true;// Select only hard scattering proccesses 
+  if(aProbeCand.pt()<1) return false;// Select only hard scattering proccesses 
 
   probeFourVector.SetPtEtaPhiM(aProbeCand.pt(), aProbeCand.eta(), aProbeCand.phi(), nominalMuonMass);
   myHistos_->fill1DHistogram("h1DDiMuonMassTagProbe",(tagFourVector+probeFourVector).M());   
@@ -298,7 +316,6 @@ if (useNanoAOD) {
         fillHistosForRecoMuon(puMuonLeg);
       }
     }
-
     
   return true;
 }
