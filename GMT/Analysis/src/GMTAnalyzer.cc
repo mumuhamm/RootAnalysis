@@ -89,7 +89,7 @@ bool GMTAnalyzer::passQuality(const L1Obj & aL1Cand,
      return aL1Cand.type==L1Obj::uGMT && aL1Cand.q>=12 && aL1Cand.bx==0 && !lowPtVeto;
    }
    else if(sysType.find("OMTF")!=std::string::npos){
-     return true;
+     return aL1Cand.type==L1Obj::OMTF && aL1Cand.q>=12 && aL1Cand.bx==0;
    }   
    return false;
 
@@ -117,7 +117,7 @@ void GMTAnalyzer::fillTurnOnCurve(const TLorentzVector & aMuonCand4Vector,
   }
 
   ///Find the best matching L1 candidate
-  double deltaR = 0.15;
+  double deltaR = 0.4;
   L1Obj selectedCand;
 
    
@@ -261,7 +261,7 @@ if (useNanoAOD) {
 
 } else {
     const EventProxyOMTF& myProxy = static_cast<const EventProxyOMTF&>(iEvent);
-    myEventId = myProxy.getEventId();
+    //myEventId = myProxy.getEventId();
     myMuonObjColl = myProxy.getRecoMuonObjColl();
     myL1ObjColl = myProxy.getL1ObjColl();
 }
@@ -275,11 +275,11 @@ if (useNanoAOD) {
 
   const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   if(myMuonColl.empty()) return false;
-  if(myMuonColl.size() !=2 )return false;
+  if(myMuonColl.size() < 2 )return false;
 
   MuonObj aTagCand =  myMuonColl.at(0);
   std::cout<< " the value of the pT :    "<< aTagCand.pt()<< "\n";
-  bool tagPass = aTagCand.pt()>20 && aTagCand.matchedisohlt();
+  bool tagPass = aTagCand.pt()>10 && aTagCand.matchedisohlt();
   if(!tagPass) return true;
   
   

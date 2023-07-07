@@ -105,6 +105,7 @@ void EventProxyOMTFNANOAOD::fillnanoMuonObjColl()  {
             myMuonObjColl->addMuonObj(aMuonObj);
             
         }
+
 }
 std::vector<OMTFHitNano> EventProxyOMTFNANOAOD::getHits() const {
   std::vector<OMTFHitNano> hits;

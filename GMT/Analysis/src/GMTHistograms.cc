@@ -174,9 +174,11 @@ void GMTHistograms::finalizeHistograms(){
    
   //Turn on curves for many pT thresholds.
   ///Lines for reference - Phase2 uGMT, and other algorithm shown
- /* for(int iPtCode=1;iPtCode<=30;++iPtCode){
-      plotGMTVsOther(iPtCode,"uGMT");
-  }*/
+  for(int iPtCode=1;iPtCode<=30;++iPtCode){
+      plotGMTVsOther(iPtCode,"OMTF");
+  }
+
+  plotRate("Tot");
 }
 /////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////
@@ -264,7 +266,7 @@ void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh){
     l.AddEntry(hEff,nameCut.Data());
     c->Update();
     auto graph = hEff->GetPaintedGraph();
-    graph->GetXaxis()->SetRangeUser(0.0,100.0);
+    graph->GetXaxis()->SetRangeUser(0.0,60.0);
     graph->GetYaxis()->SetRangeUser(0.0,1.0);
     c->Update();
   }
@@ -440,7 +442,7 @@ void GMTHistograms::plotGMTVsOther(int iPtCut,
   
 
 
-  hName = "h2DuGMTPt"+std::to_string((int)ptCut);
+  hName = "h2DOMTFPt"+std::to_string((int)ptCut);
   h2D = get2DHistogram(hName);
   hNum = h2D->ProjectionX("hNum",2,2);
   hDenom = h2D->ProjectionX("hDenom",1,1);    
