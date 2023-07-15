@@ -146,15 +146,15 @@ void GMTAnalyzer::fillTurnOnCurve(const TLorentzVector & aMuonCand4Vector,
   tmpName = hName+"HighPt"+std::to_string(ptCut);
   myHistos_->fill2DHistogram(tmpName, aMuonCand4Vector.Pt(), passPtCut);
 
-  tmpName = hName+"PtRecVsPtOMTF";
+  tmpName = hName+"RecoMuonPtVsL1Pt";
   myHistos_->fill2DHistogram(tmpName, aMuonCand4Vector.Pt(), selectedCand.ptValue());
   
   //Generic eff vs selected variable calculated for muons on plateau
   if(!selType.size() && aMuonCand4Vector.Pt()<ptCut+20) return;
-  tmpName = hName+"EtauGMT"+std::to_string(ptCut);
+  tmpName = hName+"Eta"+std::to_string(ptCut);
   myHistos_->fill2DHistogram(tmpName, aMuonCand4Vector.Eta(), passPtCut);
 
-  tmpName = hName+"PhiuGMT"+std::to_string(ptCut);
+  tmpName = hName+"Phi"+std::to_string(ptCut);
   myHistos_->fill2DHistogram(tmpName, aMuonCand4Vector.Phi(), passPtCut);
   
 
@@ -182,7 +182,6 @@ void GMTAnalyzer::fillRateHisto(const TLorentzVector & aRecoMuon4Vector,
     if(pass && selectedCand.ptValue()<aCand.ptValue()) selectedCand = aCand;
 
   }
-
   bool pass = selectedCand.ptValue()>=20;
   if(selType.find("Tot")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon4Vector.Pt(),selectedCand.ptValue());
   if(selType.find("VsEta")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon4Vector.Pt(),pass*aRecoMuon4Vector.Eta()+(!pass)*99);
@@ -201,7 +200,7 @@ void GMTAnalyzer::fillHistosForRecoMuon(const TLorentzVector & aRecoMuon4Vector)
 
   bool isOMTFAcceptance = fabs(aRecoMuon4Vector.Eta())>0.83 && fabs(aRecoMuon4Vector.Eta())<1.24;
   if(!isOMTFAcceptance) return;
-  
+  //std::cout<< std::abs(aRecoMuon4Vector.Eta())<< "\n";  
   myHistos_->fill1DHistogram("h1DPtProbe", aRecoMuon4Vector.Pt());
   myHistos_->fill1DHistogram("h1DAbsEtaProbe", std::abs(aRecoMuon4Vector.Eta()));
   
@@ -278,10 +277,11 @@ if (useNanoAOD) {
   if(myMuonColl.size() < 2 )return false;
 
   MuonObj aTagCand =  myMuonColl.at(0);
-  std::cout<< " the value of the pT :    "<< aTagCand.pt()<< "\n";
+  //std::cout<< " the pT value and the trigger decision :     "<< aTagCand.pt()<<"\t"<< aTagCand.matchedisohlt()<<"\n";
   bool tagPass = aTagCand.pt()>10 && aTagCand.matchedisohlt();
   if(!tagPass) return true;
-  
+ 
+  //std::cout<< " the value of the pT :    "<< aTagCand.pt()<< "\n"; 
   
   tagFourVector.SetPtEtaPhiM(aTagCand.pt(), aTagCand.eta(), aTagCand.phi(), nominalMuonMass);
   myHistos_->fill1DHistogram("h1DPtTag", tagFourVector.Pt());
@@ -293,6 +293,8 @@ if (useNanoAOD) {
   double tmpDelta = 2*deltaM_Z;
   for (auto aMuonCand: myMuonColl){   
       randomMuonLeg.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(), nominalMuonMass);
+      fillRateHisto(randomMuonLeg, "OMTF","Tot");
+      fillRateHisto(randomMuonLeg, "OMTF","Tot");
       tmpDelta = std::abs((tagFourVector+randomMuonLeg).M()-m_Z);
       if(aMuonCand.tightID() && tmpDelta<deltaM_Z){
       deltaM_Z = tmpDelta;

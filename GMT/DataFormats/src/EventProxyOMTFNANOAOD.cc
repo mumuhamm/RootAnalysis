@@ -1,5 +1,12 @@
 #include "EventProxyOMTFNANOAOD.h"
-
+#include <cstdlib>
+#include <string>
+#include <omp.h>
+#include <bitset>
+#include <sstream>
+#include <cmath> 
+#include <iostream>
+using namespace std;
 
 
 EventProxyOMTFNANOAOD::EventProxyOMTFNANOAOD(){
@@ -80,10 +87,10 @@ void EventProxyOMTFNANOAOD::init(std::vector<std::string> const& iFileNames){
 
 }
 void  EventProxyOMTFNANOAOD::fillnanoL1ObjColl() {
-          for( Int_t i =0; i< nL1Mu; ++i){
-              //std::cout<< " the iteration: "<< i << "\t and the eta: "<< L1Mu_eta[i]<< "\n";
+               myL1ObjColl->clearL1Objs();
+              //myL1ObjColl->getL1Objs().clear();
+             for( Int_t i =0; i< nL1Mu; ++i){
               aL1Obj.eta  = L1Mu_eta[i];
-              //std::cout<< " now the eta from the asigned object : "<< aL1Obj.eta<< "\n"; 
 	      aL1Obj.phi  = L1Mu_phi[i];
               aL1Obj.pt   = L1Mu_pt[i];
               aL1Obj.charge  = L1Mu_hwCharge[i];
@@ -94,6 +101,7 @@ void  EventProxyOMTFNANOAOD::fillnanoL1ObjColl() {
             }
 }
 void EventProxyOMTFNANOAOD::fillnanoMuonObjColl()  {
+         //myMuonObjColl->getMuonObjs().clear();
          for (Int_t i = 0; i < nMuon; ++i) {
             aMuonObj.setCharge(Muon_charge[i]);
             aMuonObj.setPt(Muon_pt[i]);

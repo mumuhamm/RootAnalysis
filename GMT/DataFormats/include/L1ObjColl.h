@@ -33,7 +33,7 @@ public:
   L1ObjColl l1OthColl() const {
     return selectByType(L1Obj::DT)+selectByType(L1Obj::CSC);
   }
-
+  void clearL1Objs() { theL1Obj.clear(); }
   L1ObjColl selectByType( TYPE t1) const;
   L1ObjColl selectByPt( double ptMin = 0., double ptMax = 161.) const;
   L1ObjColl selectByPtMin( double ptMin = 0.) const;
