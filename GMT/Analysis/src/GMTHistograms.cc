@@ -676,10 +676,10 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     h1D->Scale(1.0/h1D->Integral(0,h1D->GetNbinsX()+1));    
     h1D->GetXaxis()->SetRange(1,h1D->GetNbinsX()+1);
     const std::string  histName = hName.c_str();
-    if(hName.find("PtTag")!=std::string::npos)h1D->SetXTitle("Tag p_{T}^{#mu RECO} (GeV/c)");
-    if(hName.find("AbsEtaTag")!=std::string::npos)h1D->SetXTitle("Tag |#eta^{#mu RECO}| (a.u.)");
-    if(hName.find("PtProbe")!=std::string::npos)h1D->SetXTitle("Probe p_{T}^{#mu RECO} (GeV/c)");
-    if(hName.find("AbsEtaProbe")!=std::string::npos)h1D->SetXTitle("Probe |#eta^{#mu RECO}| (a.u.)");
+    if(histName.find("PtTag")!=std::string::npos)h1D->SetXTitle("Tag p_{T}^{#mu RECO} (GeV/c)");
+    if(histName.find("AbsEtaTag")!=std::string::npos)h1D->SetXTitle("Tag |#eta^{#mu RECO}| (a.u.)");
+    if(histName.find("PtProbe")!=std::string::npos)h1D->SetXTitle("Probe p_{T}^{#mu RECO} (GeV/c)");
+    if(histName.find("AbsEtaProbe")!=std::string::npos)h1D->SetXTitle("Probe |#eta^{#mu RECO}| (a.u.)");
     h1D->SetYTitle("Events");
     h1D->GetYaxis()->SetTitleOffset(1.4);
     h1D->SetStats(kFALSE);
@@ -687,7 +687,7 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     h1D->DrawNormalized();
     c->Print(TString::Format("fig_png/%s.png",hName.c_str()).Data());
    
-    if(hName.find("DiMuonMassTagProbe")!=std::string::npos){
+    if(histName.find("DiMuonMassTagProbe")!=std::string::npos){
     RooRealVar mass("mass", "Z(#mu^{+}#mu^{-}) (GeV/c^{2})", 70, 110);
     RooDataHist dh("dh", "dh", mass, Import(*diMuonClone));
     RooRealVar mu("mu", "mu", 91.18, 90, 93);
