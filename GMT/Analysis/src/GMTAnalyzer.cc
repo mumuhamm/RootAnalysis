@@ -89,6 +89,7 @@ bool GMTAnalyzer::passQuality(const L1Obj & aL1Cand,
      return aL1Cand.type==L1Obj::uGMT && aL1Cand.q>=12 && aL1Cand.bx==0 && !lowPtVeto;
    }
    else if(sysType.find("OMTF")!=std::string::npos){
+    
      return aL1Cand.type==L1Obj::OMTF && aL1Cand.q>=12 && aL1Cand.bx==0;
    }   
    return false;
@@ -96,7 +97,7 @@ bool GMTAnalyzer::passQuality(const L1Obj & aL1Cand,
 }
 // //////////////////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////////////////
-void GMTAnalyzer::fillTurnOnCurve(const TLorentzVector & aMuonCand4Vector,
+void GMTAnalyzer::fillTurnOnCurve( const TLorentzVector & aMuonCand4Vector,
                                   const int & iPtCut,
 				                          const std::string & sysType,
 				                          const std::string & selType){
@@ -104,6 +105,12 @@ void GMTAnalyzer::fillTurnOnCurve(const TLorentzVector & aMuonCand4Vector,
  //int is important for histo name construction
 
   int ptCut = GMTHistograms::ptBins[iPtCut];
+ /* bool useNanoAOD = (inputType == "nanoAOD");
+  if (useNanoAOD) {
+     const EventProxyOMTFNANOAOD& myProxy = dynamic_cast<const EventProxyOMTFNANOAOD&>(myEvent);
+     const_cast<EventProxyOMTFNANOAOD&>(myProxy).fillnanoL1ObjColl();
+     myL1ObjColl = const_cast<EventProxyOMTFNANOAOD&>(myProxy).getL1ObjColl();
+ }*/
   const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
   std::string hName = "h2DGmt"+selType;
   if(sysType=="OMTF") {   
@@ -122,9 +129,9 @@ void GMTAnalyzer::fillTurnOnCurve(const TLorentzVector & aMuonCand4Vector,
 
    
   for(auto aCand: myL1Coll){
-    bool pass = passQuality(aCand ,sysType, selType);
-    if(!pass) continue;    
-    
+    bool pass = passQuality(aCand ,sysType, selType);    
+    std::cout<<"the quality and the bunch crossing:  "<< aCand.q << "\t " << aCand.bx << "\t"<< "\n";
+    if(!pass) continue;
     double phiValue = aCand.phiValue();
     if(phiValue>M_PI) phiValue-=2*M_PI;
     
@@ -191,7 +198,7 @@ void GMTAnalyzer::fillRateHisto(const TLorentzVector & aRecoMuon4Vector,
 }
 // //////////////////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////////////////
-void GMTAnalyzer::fillHistosForRecoMuon(const TLorentzVector & aRecoMuon4Vector){   
+void GMTAnalyzer::fillHistosForRecoMuon( const TLorentzVector & aRecoMuon4Vector){   
 
  
 
@@ -200,7 +207,6 @@ void GMTAnalyzer::fillHistosForRecoMuon(const TLorentzVector & aRecoMuon4Vector)
 
   bool isOMTFAcceptance = fabs(aRecoMuon4Vector.Eta())>0.83 && fabs(aRecoMuon4Vector.Eta())<1.24;
   if(!isOMTFAcceptance) return;
-  //std::cout<< std::abs(aRecoMuon4Vector.Eta())<< "\n";  
   myHistos_->fill1DHistogram("h1DPtProbe", aRecoMuon4Vector.Pt());
   myHistos_->fill1DHistogram("h1DAbsEtaProbe", std::abs(aRecoMuon4Vector.Eta()));
   
@@ -253,36 +259,26 @@ if (useNanoAOD) {
     const_cast<EventProxyOMTFNANOAOD&>(myProxy).fillnanoMuonObjColl();
     myMuonObjColl = const_cast<EventProxyOMTFNANOAOD&>(myProxy).getRecoMuonObjColl();
     myL1ObjColl = const_cast<EventProxyOMTFNANOAOD&>(myProxy).getL1ObjColl();
- //cannot perform a static_cast from a const EventProxyBase& to EventProxyOMTFNANOAOD& because the source object (iEvent) is const, while the destination type (EventProxyOMTFNANOAOD&) is non-const.
- //To resolve this issue, you can use const_cast to remove the const qualifier temporarily. 
-    
-
-
-} else {
+   //cannot perform a static_cast from a const EventProxyBase& to EventProxyOMTFNANOAOD& because the source object (iEvent) is const, while the destination type (EventProxyOMTFNANOAOD&) is non-const.
+   //To resolve this issue, you can use const_cast to remove the const qualifier temporarily. 
+} 
+else {
     const EventProxyOMTF& myProxy = static_cast<const EventProxyOMTF&>(iEvent);
-    //myEventId = myProxy.getEventId();
+    myEventId = myProxy.getEventId();
     myMuonObjColl = myProxy.getRecoMuonObjColl();
     myL1ObjColl = myProxy.getL1ObjColl();
 }
 
-  /*const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
-  if(myMuonColl.empty()) return false; 
-  MuonObj aTagCand =  myMuonColl.at(0);
-  std::cout<< " the pt of the tag muon: "<< aTagCand.pt()<< "\n";
-*/
-
-
-  const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
+const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   if(myMuonColl.empty()) return false;
   if(myMuonColl.size() < 2 )return false;
 
-  MuonObj aTagCand =  myMuonColl.at(0);
-  //std::cout<< " the pT value and the trigger decision :     "<< aTagCand.pt()<<"\t"<< aTagCand.matchedisohlt()<<"\n";
+   MuonObj aTagCand =  myMuonColl.at(0);
   bool tagPass = aTagCand.pt()>10 && aTagCand.matchedisohlt();
   if(!tagPass) return true;
  
-  //std::cout<< " the value of the pT :    "<< aTagCand.pt()<< "\n"; 
   
+
   tagFourVector.SetPtEtaPhiM(aTagCand.pt(), aTagCand.eta(), aTagCand.phi(), nominalMuonMass);
   myHistos_->fill1DHistogram("h1DPtTag", tagFourVector.Pt());
   myHistos_->fill1DHistogram("h1DAbsEtaTag", std::abs(tagFourVector.Eta()));

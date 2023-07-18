@@ -32,7 +32,6 @@ class GMTAnalyzer:public Analyzer{
   void initialize(TDirectory* aDir, pat::strbitset *aSelections);
 
   bool analyze(const EventProxyBase& iEvent);
-
   void finalize();
 
   Analyzer* clone() const;
@@ -53,9 +52,9 @@ class GMTAnalyzer:public Analyzer{
 private:
   
   
-  void fillHistosForRecoMuon(const TLorentzVector & aRecoMuon4Vector);
+  void fillHistosForRecoMuon( const TLorentzVector & aRecoMuon4Vector);
 
-  void fillTurnOnCurve(const TLorentzVector & aMuonCand4Vector,
+  void fillTurnOnCurve(  const TLorentzVector & aMuonCand4Vector,
                       const int & ptCut, const std::string & sysType,
 		                  const std::string & selType);
 
@@ -71,7 +70,8 @@ private:
   std::string inputType;
   ///Histograms for this analysis
   GMTHistograms *myHistos_;
-
+  
+  
   const EventObj  *myEventId;
   const MuonObjColl  *myMuonObjColl;
   const L1ObjColl  *myL1ObjColl;
