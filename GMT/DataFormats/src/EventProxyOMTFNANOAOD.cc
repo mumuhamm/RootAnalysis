@@ -91,7 +91,7 @@ void  EventProxyOMTFNANOAOD::fillnanoL1ObjColl() {
               //myL1ObjColl->getL1Objs().clear();
              for( Int_t i =0; i< nL1Mu; ++i){
               aL1Obj.eta  = L1Mu_eta[i];
-	      aL1Obj.phi  = L1Mu_phi[i];
+	      aL1Obj.nanoPhi  = L1Mu_phi[i];
               aL1Obj.pt   = L1Mu_pt[i];
               aL1Obj.charge  = L1Mu_hwCharge[i];
               aL1Obj.bx        = L1Mu_bx[i];
@@ -101,7 +101,8 @@ void  EventProxyOMTFNANOAOD::fillnanoL1ObjColl() {
             }
 }
 void EventProxyOMTFNANOAOD::fillnanoMuonObjColl()  {
-         //myMuonObjColl->getMuonObjs().clear();
+             myMuonObjColl->clearMuonObjs();
+            //myMuonObjColl->getMuonObjs().clear();
          for (Int_t i = 0; i < nMuon; ++i) {
             aMuonObj.setCharge(Muon_charge[i]);
             aMuonObj.setPt(Muon_pt[i]);
