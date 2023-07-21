@@ -112,7 +112,7 @@ void GMTHistograms::defineHistograms(){
  add1DHistogram("h1DDeltaEtaTemplate","",11,-0.83,0.83,file_);
  add1DHistogram("h1DDeltaPhiTemplate","",5*32,-M_PI,M_PI,file_);
  add1DHistogram("h1DPtTagTemplate", "", 100, 0, 100, file_);
- add1DHistogram("h1DAbsEtaTagTemplate", "", 60, 0, 2.4, file_);
+ add1DHistogram("h1DAbsEtaTagTemplate", "", 60, 0.0, 2.4, file_);
  add1DHistogram("h1DPtProbeTemplate", "", 100, 0, 100, file_);
  add1DHistogram("h1DAbsEtaProbeTemplate", "", 60, 0.8, 1.4, file_);
  add1DHistogram("h1DDiMuonMassTemplate", "", 80, 70, 110, file_); 
@@ -155,21 +155,20 @@ void GMTHistograms::finalizeHistograms(){
   plotEffPanel("OMTF", true);// High pT turn on curves 
  
   //1D histograms 
+  
   plotSingleHistogram("h1DPtTag");
   plotSingleHistogram("h1DAbsEtaTag");
   plotSingleHistogram("h1DPtProbe");
   plotSingleHistogram("h1DAbsEtaProbe");
   plotSingleHistogram("h1DDiMuonMassTagProbe"); 
+  plotSingleHistogram("h2DOMTFRecoMuonPtVsL1Pt");
   
-
-  //Efficiency as a function of ete.
-  //Lines for selected points on the turn on curve shown
+  //Efficiency as a function of eta and phis, Lines for selected points on the turn on curve shown
+  
   plotEffVsEta("OMTF");
   plotEffVsVar("OMTF", "Eta");
   plotEffVsVar("OMTF", "Phi");
-  plotSingleHistogram("h2DOMTFRecoMuonPtVsL1Pt");
-  
-   
+    
   //Turn on curves for many pT thresholds.
   ///Lines for reference - Phase2 uGMT, and other algorithm shown
   for(int iPtCode=1;iPtCode<=30;++iPtCode){
@@ -228,6 +227,24 @@ TEfficiency * GMTHistograms::DivideErr(TH1D * h1, TH1D * h2,const char * name,co
 }
 /////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////
+void GMTHistograms::DrawLabels(TCanvas* c, const TString& eraLabel) {
+    TLatex* cmsLabel = new TLatex();
+    cmsLabel->SetTextFont(42);
+    cmsLabel->SetTextSize(0.04);
+    cmsLabel->SetTextAlign(11); // Left-align
+    cmsLabel->DrawLatexNDC(0.18, 0.92, "#bf{CMS} #it{Preliminary}");
+
+    TLatex* lumiLabel = new TLatex();
+    lumiLabel->SetTextFont(42);
+    lumiLabel->SetTextSize(0.04);
+    lumiLabel->SetTextAlign(31); // Right-align
+    TString lumiText = "Z#rightarrow #mu#mu-" + eraLabel;
+    lumiLabel->DrawLatexNDC(0.94444, 0.92, lumiText);
+
+    c->Update();
+}
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh){
 
   TCanvas* c = new TCanvas(TString::Format("EffVsPt_%s",sysType.c_str()),
@@ -267,17 +284,7 @@ void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh){
     graph->GetXaxis()->SetRangeUser(0.0,100.0);
     graph->GetYaxis()->SetRangeUser(0.0,1.0);
     c->Update();
-    
-    TLatex* cmsLabel = new TLatex();
-    cmsLabel->SetTextFont(42);
-    cmsLabel->SetTextSize(0.04);
-    cmsLabel->SetTextAlign(11); // Left-align
-    cmsLabel->DrawLatexNDC(0.18, 0.92, "#bf{CMS} #it{Preliminary}");
-    TLatex* lumiLabel = new TLatex();
-    lumiLabel->SetTextFont(42);
-    lumiLabel->SetTextSize(0.04);
-    lumiLabel->SetTextAlign(31); // Right-align
-    lumiLabel->DrawLatexNDC(0.94444, 0.92, "Z#rightarrow #mu#mu-2023EraB"); 
+    DrawLabels(c, "DrellYan"); 
     c->Update();
   }
   l.DrawClone();
@@ -676,6 +683,7 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     h1D->Scale(1.0/h1D->Integral(0,h1D->GetNbinsX()+1));    
     h1D->GetXaxis()->SetRange(1,h1D->GetNbinsX()+1);
     const std::string  histName = hName.c_str();
+    std::cout<< " the name of the hist string : "<< histName << "\n";
     if(histName.find("PtTag")!=std::string::npos)h1D->SetXTitle("Tag p_{T}^{#mu RECO} (GeV/c)");
     if(histName.find("AbsEtaTag")!=std::string::npos)h1D->SetXTitle("Tag |#eta^{#mu RECO}| (a.u.)");
     if(histName.find("PtProbe")!=std::string::npos)h1D->SetXTitle("Probe p_{T}^{#mu RECO} (GeV/c)");
@@ -684,7 +692,7 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     h1D->GetYaxis()->SetTitleOffset(1.4);
     h1D->SetStats(kFALSE);
     gStyle->SetOptStat(0);
-    h1D->DrawNormalized();
+    h1D->Draw("");
     c->Print(TString::Format("fig_png/%s.png",hName.c_str()).Data());
    
     if(histName.find("DiMuonMassTagProbe")!=std::string::npos){

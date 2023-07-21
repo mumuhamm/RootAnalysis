@@ -15,6 +15,7 @@ public:
         const std::vector<MuonObj> & getMuonObjs() const { return theColl; }
         const std::vector<MuonObj> & data() const { return theColl;}
         void addMuonObj(const MuonObj& muonObj) { theColl.push_back(muonObj); } // New member function to add MuonObj
+        void clearMuonObjs() { theColl.clear(); }
 private:
 	std::vector<MuonObj> theColl;
         friend std::ostream & operator<< (std::ostream &out, const MuonObjColl & coll) {

@@ -130,7 +130,7 @@ void GMTAnalyzer::fillTurnOnCurve( const TLorentzVector & aMuonCand4Vector,
    
   for(auto aCand: myL1Coll){
     bool pass = passQuality(aCand ,sysType, selType);    
-    std::cout<<"the quality and the bunch crossing:  "<< aCand.q << "\t " << aCand.bx << "\t"<< "\n";
+   // std::cout<<"the quality and the bunch crossing:  "<< aCand.q << "\t " << aCand.bx << "\t"<< "\n";
     if(!pass) continue;
     double phiValue = aCand.phiValue();
     if(phiValue>M_PI) phiValue-=2*M_PI;
@@ -267,7 +267,14 @@ else {
     myEventId = myProxy.getEventId();
     myMuonObjColl = myProxy.getRecoMuonObjColl();
     myL1ObjColl = myProxy.getL1ObjColl();
+    myL1PhaseIIObjColl = myProxy.getL1PhaseIIObjColl();
 }
+
+/*const std::vector<L1PhaseIIObj> & myL1PhaseIIColl  = myL1PhaseIIObjColl->getL1PhaseIIObjs();
+
+	for(auto aPhaseIICand : myL1PhaseIIColl){
+		std::cout<< " phase-II pt, eta and phi & charge : "<< aPhaseIICand.ptValue() <<"\t"<<  aPhaseIICand.etaValue() <<"\t"<< aPhaseIICand.phiValue() <<"\t"<<  aPhaseIICand.chargeValue()<<"\n";
+}*/
 
 const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   if(myMuonColl.empty()) return false;
