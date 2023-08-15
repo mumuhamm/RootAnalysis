@@ -182,6 +182,7 @@ void GMTAnalyzer::fillRateHisto(const TLorentzVector & aRecoMuon4Vector,
   const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
   std::string hName = "h2D"+sysType+"Rate"+selType;
 
+  //std::cout<< " take the system type out in here : Rate :: " << sysType<< "\n";
   L1Obj selectedCand;
   for(auto aCand: myL1Coll){
 
@@ -288,8 +289,7 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
 
   tagFourVector.SetPtEtaPhiM(aTagCand.pt(), aTagCand.eta(), aTagCand.phi(), nominalMuonMass);
   myHistos_->fill1DHistogram("h1DPtTag", tagFourVector.Pt());
-  myHistos_->fill1DHistogram("h1DAbsEtaTag", std::abs(tagFourVector.Eta()));
-
+  myHistos_->fill1DHistogram("h1DAbsEtaTag", tagFourVector.Eta());
   MuonObj aProbeCand;
   double m_Z = 91.1876;
   double deltaM_Z = 20;

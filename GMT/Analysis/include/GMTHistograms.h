@@ -38,7 +38,7 @@ private:
   TEfficiency * DivideErr(TH1D * h1, TH1D * h2,
                    const char * name="DivideErr",
                    const char * optErr ="");
-  void DrawLabels(TCanvas* c, const TString& eraLabel);
+  void DrawLabels(TCanvas* c);//, const TString& eraLabel);
   void plotEffPanel(const std::string & sysType, bool doHigh=false);
 
   void plotEffVsEta(const std::string & sysType);
