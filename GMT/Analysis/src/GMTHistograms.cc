@@ -235,13 +235,13 @@ void GMTHistograms::DrawLabels(TCanvas* c){//, const TString& eraLabel) {
     cmsLabel->SetTextFont(42);
     cmsLabel->SetTextSize(0.04);
     cmsLabel->SetTextAlign(11); // Left-align
-    cmsLabel->DrawLatexNDC(0.18, 0.92, "#bf{CMS} #it{Preliminary}");
+    cmsLabel->DrawLatexNDC(0.17, 0.92, "#bf{CMS} #it{Preliminary}");
 
     TLatex* lumiLabel = new TLatex();
     lumiLabel->SetTextFont(42);
     lumiLabel->SetTextSize(0.04);
     lumiLabel->SetTextAlign(31); // Right-align
-    TString lumiText =  "2022CombinedBC";// now just era we have lumi info though eraLabel;
+    TString lumiText =  "2023EraD";// now just era we have lumi info though eraLabel;
     lumiLabel->DrawLatexNDC(0.94444, 0.92, lumiText);
 
     c->Update();
@@ -292,8 +292,14 @@ void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh){
   }
   l.DrawClone();
   
-  if(!doHigh) c->Print(TString::Format("fig_png/PanelVsPt_%s.png",sysType.c_str()).Data());
-  else  c->Print(TString::Format("fig_png/PanelVsHighPt_%s.png",sysType.c_str()).Data());
+  if(!doHigh){ 
+               c->Print(TString::Format("fig_png/PanelVsPt_%s.png",sysType.c_str()).Data());
+               c->Print(TString::Format("fig_png/PanelVsPt_%s.pdf",sysType.c_str()).Data());
+             }
+  else{  
+        c->Print(TString::Format("fig_png/PanelVsHighPt_%s.png",sysType.c_str()).Data());
+	c->Print(TString::Format("fig_png/PanelVsHighPt_%s.pdf",sysType.c_str()).Data());
+      }
 }
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -354,7 +360,7 @@ void GMTHistograms::plotEffVsVar(const std::string & sysType,
     hDenom->Add(hNum);
     TEfficiency* hEff =DivideErr(hNum,hDenom,"Pt_Int","B");
     hEff->SetMarkerStyle(21+icut);
-    hEff->SetMarkerColor(color[icut]);
+    hEff->SetMarkerColor(color[icut]); // Please fix the title accriding to histograms 
     hEff->SetTitle(";  p_{T}^{reco} (GeV/c);Efficiency");
     if (icut==0)hEff->Draw();
     else hEff->Draw("same");
@@ -372,6 +378,7 @@ void GMTHistograms::plotEffVsVar(const std::string & sysType,
   DrawLabels(c);
   c->Print(TString::Format("fig_eps/EffVs%s_%s.eps",varName.c_str(), sysType.c_str()).Data());
   c->Print(TString::Format("fig_png/EffVs%s_%s.png",varName.c_str(), sysType.c_str()).Data());
+  c->Print(TString::Format("fig_png/EffVs%s_%s.pdf",varName.c_str(), sysType.c_str()).Data());
 }
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -432,7 +439,7 @@ void GMTHistograms::plotEffVsEta(const std::string & sysType){
   l.DrawClone();
   DrawLabels(c);
   c->Print(TString::Format("fig_png/EffVsEta_%s.png",sysType.c_str()).Data());
-  //c->Print(TString::Format("fig_png/EffVsEta_%s.C",sysType.c_str()).Data());
+  c->Print(TString::Format("fig_png/EffVsEta_%s.pdf",sysType.c_str()).Data());
 }
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -511,6 +518,8 @@ void GMTHistograms::plotGMTVsOther(int iPtCut,
   c->SetLogy();
   c->Print(TString::Format("fig_eps/uGMTVs%s_%d_log.eps",sysType.c_str(),(int)ptCut).Data());
   c->Print(TString::Format("fig_png/uGMTVs%s_%d_log.png",sysType.c_str(),(int)ptCut).Data());
+  c->Print(TString::Format("fig_png/uGMTVs%s_%d_log.pdf",sysType.c_str(),(int)ptCut).Data());
+
 }
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -555,8 +564,8 @@ TH1* GMTHistograms::getRateHisto(std::string sysType,
   }
   
   TH1D *hRate = h2D->ProjectionY(("hRate"+sysType).c_str());
-  if(sysType=="OMTF") hRate = h2D->ProjectionX("hRate");
-
+  if(sysType=="OMTF" || sysType=="uGMT") hRate = h2D->ProjectionX("hRate");
+  std::cout<< " the name after the projection : "<< hRate->GetName()<< "\n";
   hRate->SetYTitle("Arbitrary units");
   hRate->SetLineWidth(3);
   if(type.find("Tot")!=std::string::npos) return(TH1*)hRate->Clone("hRateClone");
@@ -572,7 +581,7 @@ void GMTHistograms::plotRate(std::string type){
   
   TH1 *hRateuGMT = getRateHisto("uGMT",type);
   TH1 *hRateOMTF = getRateHisto("OMTF",type);
-  std::cout<< " when printing the uGMT what happens : "<< hRateuGMT->GetName()<< "\n";
+  //std::cout<< " when printing the uGMT what happens : "<< hRateuGMT->GetName()<< "\n";
   std::cout<< " the name of the histrogram : when plot rate :: printing OMTF : "<<  hRateOMTF->GetName() << "\n";
   if(!hRateOMTF || !hRateuGMT) return;
   std::cout<< " again printing the OMTF : "<< hRateOMTF->GetName()<< "\n";
@@ -593,18 +602,18 @@ void GMTHistograms::plotRate(std::string type){
   leg->SetBorderSize(0);
   leg->SetFillColor(10);
 
-  if(type.find("Rate")!=std::string::npos){
+  if(type.find("Tot")!=std::string::npos){
     hRateOMTF->SetAxisRange(2,50);
-    hRateuGMT->SetAxisRange(2,50);
+    //hRateuGMT->SetAxisRange(2,50);
     hRateOMTF->SetMinimum(1E1);
     hRateOMTF->SetMaximum(2E5);
     hRateOMTF->SetXTitle("p_{T}^{cut} (GeV/c)");
     c->SetLogy();
     c->SetGrid(1,0);
     hRateOMTF->Draw();
-    hRateuGMT->DrawCopy("same");
+    //hRateuGMT->DrawCopy("same");
    
-    std::cout<<"Rate uGMT @ 20 GeV: "<< hRateuGMT->GetBinContent(hRateuGMT->FindBin(20-0.01))<<std::endl;
+    std::cout<<"Rate OMTF @ 20 GeV: "<< hRateOMTF->GetBinContent(hRateOMTF->FindBin(20-0.01))<<std::endl;
   }  
   else if(type.find("VsEta")!=std::string::npos){
     c->SetLogy(0);
@@ -683,6 +692,7 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     h2D->Draw("box colz");
     DrawLabels(c);
     c->Print(TString::Format("fig_png/%s.png",hName.c_str()).Data());
+    c->Print(TString::Format("fig_png/%s.pdf",hName.c_str()).Data());
   }
   if(h1D) {
     h1D->SetDirectory(myDirCopy);
@@ -703,19 +713,20 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     h1D->Draw("");
     DrawLabels(c);
     c->Print(TString::Format("fig_png/%s.png",hName.c_str()).Data());
-   
+    c->Print(TString::Format("fig_png/%s.pdf",hName.c_str()).Data());
+    
     if(histName.find("DiMuonMassTagProbe")!=std::string::npos){
-    RooRealVar mass("mass", "m_{Z}(#mu^{+}#mu^{-}) (GeV/c^{2})", 70, 110);
+    RooRealVar mass("mass", "m_{Z}(#mu^{+}#mu^{-}) (GeV/c^{2})", 80, 100);
     RooDataHist dh("dh", "dh", mass, Import(*diMuonClone));
     RooRealVar mu("mu", "mu", 91.18, 90, 93);
     RooRealVar lambda ("lambda", "lambda",  0.5, 0.0, 10);
-    RooRealVar gamma ("gamma", "gamma",  0., -10, 10);
+    RooRealVar gamma ("gamma", "gamma",  0., 0.0, 10);
     RooRealVar delta ("delta", "delta", 1., 0.0, 20);
     RooJohnson john ("john", "john", mass, mu, lambda, gamma, delta);    
-    RooRealVar conts ("conts","conts", -10.0, 0.0);
+    RooRealVar conts ("conts","conts", 0.5, -50.0, 50.0);
     RooExponential expoBg ("expoBg","expoBG",mass,conts);
     RooRealVar nSig("nSig", "nSig",500,0,(int)h1D->GetEntries());
-    RooRealVar nBkg("nBkg", "nBkg", 500,0,(int)h1D->GetEntries());
+    RooRealVar nBkg("nBkg", "nBkg",400,0,(int)h1D->GetEntries());
     RooAddPdf zpdf("zpdf","zpdf",RooArgList(john,expoBg), RooArgList(nSig,nBkg));
     RooFitResult* fitRes = zpdf.fitTo(dh,Save(true),NumCPU(8), RooFit::Minimizer("Minuit2", "Migrad"));
     fitRes->Print("v");
@@ -730,7 +741,12 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     pullframezmass->addPlotable(hpullmass,"P0");
     pullframezmass->SetMinimum(-3) ;
     pullframezmass->SetMaximum(+3) ;
-    pullframezmass->SetYTitle("pull");
+    pullframezmass->GetYaxis()->SetTitle("pull");
+    pullframezmass->GetYaxis()->SetTitleSize(0.2);
+    pullframezmass->GetYaxis()->SetTitleOffset(0.3);
+    pullframezmass->GetXaxis()->SetTitle("m_{Z}(#mu^{+}#mu^{-}) (GeV/c^{2})");
+    pullframezmass->GetXaxis()->SetTitleSize(0.2);
+    pullframezmass->GetXaxis()->SetTitleOffset(0.85);
     pullframezmass->SetMarkerStyle(20);
     pullframezmass->SetNdivisions(10);
     double chisquare_mass = zmassf->chiSquare();
@@ -749,11 +765,11 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     leg->AddEntry(zmassf->findObject("combinatorial"),"Combi","l");
     leg->SetBorderSize(0);
     TPad *pad1 = new TPad("pad1","pad1",0,0.3,1,0.97);
-    TPad *pad2 = new TPad("pad2","pad2",0.0,0.09,1,0.27);
-    pad1->SetBottomMargin(0.00001);
+    TPad *pad2 = new TPad("pad2","pad2",0.0,0.1,1,0.27);
+    pad1->SetBottomMargin(0.05);
     pad1->SetBorderMode(0);
-    pad2->SetTopMargin(0.01);
-    pad2->SetBottomMargin(0.1);
+    pad2->SetTopMargin(0.08);  
+    pad2->SetBottomMargin(0.45);
     pad2->SetBorderMode(0);
     pad1->Draw();
     pad2->Draw();
@@ -763,6 +779,7 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     cDimuon->SetBorderSize(2);
     cDimuon->SetLeftMargin(0.14);
     cDimuon->SetRightMargin(0.044);
+    cDimuon->SetBottomMargin(0.001);
     zmassf->SetStats(0);
     gStyle->SetTitle(0);
     zmassf->SetTitle("");
@@ -770,8 +787,8 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     leg->Draw("same");
     pad2->cd();
     pullframezmass->SetStats(0);
-    pullframezmass->GetYaxis()->SetTitleFont(42);  
-    pullframezmass->GetXaxis()->SetTitleFont(42);  
+    pullframezmass->SetLabelSize(0.2, "X");
+    pullframezmass->SetLabelSize(0.1, "Y");
     pullframezmass->Draw();
     cDimuon->cd();
     DrawLabels(cDimuon);   

@@ -289,7 +289,7 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
 
   tagFourVector.SetPtEtaPhiM(aTagCand.pt(), aTagCand.eta(), aTagCand.phi(), nominalMuonMass);
   myHistos_->fill1DHistogram("h1DPtTag", tagFourVector.Pt());
-  myHistos_->fill1DHistogram("h1DAbsEtaTag", tagFourVector.Eta());
+  myHistos_->fill1DHistogram("h1DAbsEtaTag", std::abs(tagFourVector.Eta()));
   MuonObj aProbeCand;
   double m_Z = 91.1876;
   double deltaM_Z = 20;
