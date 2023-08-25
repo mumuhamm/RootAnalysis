@@ -28,6 +28,10 @@
 #include "TGraphAsymmErrors.h"
 #include "TColor.h"
 #include "RooHist.h"
+#include "RooCrystalBall.h"
+#include "RooBreitWigner.h"
+#include "RooChebychev.h"
+#include "RooPolynomial.h"
 using namespace std;
 using namespace RooFit ;
 
@@ -116,7 +120,7 @@ void GMTHistograms::defineHistograms(){
  add1DHistogram("h1DAbsEtaTagTemplate", "", 60, -2.4, 2.4, file_);
  add1DHistogram("h1DPtProbeTemplate", "", 100, 0, 100, file_);
  add1DHistogram("h1DAbsEtaProbeTemplate", "", 60, 0.8, 1.4, file_);
- add1DHistogram("h1DDiMuonMassTagProbeTemplate", "", 100, 80, 100, file_); 
+ add1DHistogram("h1DDiMuonMassTagProbeTemplate", "", 100, 70, 110, file_); 
 
 
 
@@ -241,7 +245,7 @@ void GMTHistograms::DrawLabels(TCanvas* c){//, const TString& eraLabel) {
     lumiLabel->SetTextFont(42);
     lumiLabel->SetTextSize(0.04);
     lumiLabel->SetTextAlign(31); // Right-align
-    TString lumiText =  "2023EraD";// now just era we have lumi info though eraLabel;
+    TString lumiText =  "NanoAOD";//"DrellYan";// now just era we have lumi info though eraLabel;
     lumiLabel->DrawLatexNDC(0.94444, 0.92, lumiText);
 
     c->Update();
@@ -716,18 +720,30 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     c->Print(TString::Format("fig_png/%s.pdf",hName.c_str()).Data());
     
     if(histName.find("DiMuonMassTagProbe")!=std::string::npos){
-    RooRealVar mass("mass", "m_{Z}(#mu^{+}#mu^{-}) (GeV/c^{2})", 80, 100);
+    RooRealVar mass("mass", "m_{Z}(#mu^{+}#mu^{-}) (GeV/c^{2})", 75, 110);
     RooDataHist dh("dh", "dh", mass, Import(*diMuonClone));
+    RooRealVar mean("mean", "mean", 91.18, 90, 93);
+    RooRealVar width("width", "width", 5.5, 0, 20);
+    RooBreitWigner brwg("brwg", "brwg", mass, mean, width);
+    
+    RooRealVar a0("a0", "a0", 0.1, -0.2, 0.3);
+    RooRealVar a1("a1", "a1", 0.2, 0.0, 1.);
+    RooChebychev pol("pol", "pol", mass, RooArgList(a0));
+    
+
     RooRealVar mu("mu", "mu", 91.18, 90, 93);
     RooRealVar lambda ("lambda", "lambda",  0.5, 0.0, 10);
     RooRealVar gamma ("gamma", "gamma",  0., 0.0, 10);
     RooRealVar delta ("delta", "delta", 1., 0.0, 20);
-    RooJohnson john ("john", "john", mass, mu, lambda, gamma, delta);    
-    RooRealVar conts ("conts","conts", 0.5, -50.0, 50.0);
+    RooJohnson john ("john", "john", mass, mu, lambda, gamma, delta);
+  
+    RooRealVar conts ("conts","conts",  -3.0, 0.0);
     RooExponential expoBg ("expoBg","expoBG",mass,conts);
+
     RooRealVar nSig("nSig", "nSig",500,0,(int)h1D->GetEntries());
     RooRealVar nBkg("nBkg", "nBkg",400,0,(int)h1D->GetEntries());
-    RooAddPdf zpdf("zpdf","zpdf",RooArgList(john,expoBg), RooArgList(nSig,nBkg));
+    RooRealVar nlsb("nlsb", "nlsb",200,0,(int)h1D->GetEntries());
+    RooAddPdf zpdf("zpdf","zpdf",RooArgList(brwg,expoBg,pol), RooArgList(nSig,nBkg,nlsb));
     RooFitResult* fitRes = zpdf.fitTo(dh,Save(true),NumCPU(8), RooFit::Minimizer("Minuit2", "Migrad"));
     fitRes->Print("v");
     
@@ -752,9 +768,10 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     double chisquare_mass = zmassf->chiSquare();
     std::cout<<"Chi square of mass fit is :   "<< chisquare_mass<<"\n";
 
-    zpdf.plotOn(zmassf, RooFit::LineColor(kGreen),RooFit::Components("john"), RooFit::Name("signal"), LineWidth(2), LineStyle(4));
+    zpdf.plotOn(zmassf, RooFit::LineColor(kGreen),RooFit::Components("brwg"), RooFit::Name("signal"), LineWidth(2), LineStyle(4));
     zpdf.plotOn(zmassf,RooFit::LineColor(kRed),RooFit::Components("expoBg"), RooFit::Name("combinatorial"), LineWidth(2), LineStyle(6));
-   
+    zpdf.plotOn(zmassf,RooFit::LineColor(kGreen),RooFit::Components("pol"), RooFit::Name("lowerSB"), LineWidth(2), LineStyle(8)); 
+  
     TLegend *leg = new TLegend(0.15,0.55,0.45,0.85, NULL, "brNDC");
     leg->SetTextSize(0.05);
     leg->SetFillStyle(4000);
@@ -762,7 +779,8 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     leg->SetFillColor(10);
     leg->AddEntry(zmassf->findObject("Total"),"Total PDF","l");
     leg->AddEntry(zmassf->findObject("signal"),"Z^{0}#rightarrow #mu^{+}#mu^{-}","l");
-    leg->AddEntry(zmassf->findObject("combinatorial"),"Combi","l");
+    leg->AddEntry(zmassf->findObject("combinatorial"),"Combinatorial","l");
+    leg->AddEntry(zmassf->findObject("lowerSB"),"lowerSB","l");
     leg->SetBorderSize(0);
     TPad *pad1 = new TPad("pad1","pad1",0,0.3,1,0.97);
     TPad *pad2 = new TPad("pad2","pad2",0.0,0.1,1,0.27);
