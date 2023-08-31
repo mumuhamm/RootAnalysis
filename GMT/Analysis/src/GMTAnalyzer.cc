@@ -97,7 +97,7 @@ bool GMTAnalyzer::passQuality(const L1Obj & aL1Cand,
 }
 // //////////////////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////////////////
-void GMTAnalyzer::fillTurnOnCurve( const TLorentzVector & aMuonCand4Vector,
+void GMTAnalyzer::fillTurnOnCurve( const TVector3 & aMuonCand3Vector,
                                   const int & iPtCut,
 				                          const std::string & sysType,
 				                          const std::string & selType){
@@ -130,13 +130,12 @@ void GMTAnalyzer::fillTurnOnCurve( const TLorentzVector & aMuonCand4Vector,
    
   for(auto aCand: myL1Coll){
     bool pass = passQuality(aCand ,sysType, selType);    
-   // std::cout<<"the quality and the bunch crossing:  "<< aCand.q << "\t " << aCand.bx << "\t"<< "\n";
     if(!pass) continue;
     double phiValue = aCand.phiValue();
     if(phiValue>M_PI) phiValue-=2*M_PI;
     
-    double dEta = std::abs(aMuonCand4Vector.Eta()-aCand.etaValue());
-    double dPhi = std::abs(aMuonCand4Vector.Phi()-phiValue);
+    double dEta = std::abs(aMuonCand3Vector.Eta()-aCand.etaValue());
+    double dPhi = std::abs(aMuonCand3Vector.Phi()-phiValue);
     if(dPhi>2*M_PI) dPhi=-2*M_PI;
     double delta = sqrt(dEta*dEta + dPhi*dPhi);
     if(delta<deltaR && selectedCand.ptValue()<aCand.ptValue()){
@@ -148,21 +147,21 @@ void GMTAnalyzer::fillTurnOnCurve( const TLorentzVector & aMuonCand4Vector,
   bool passPtCut = selectedCand.ptValue()>=ptCut && selectedCand.ptValue()>0;
    
   std::string tmpName = hName+"Pt"+std::to_string(ptCut);
-  myHistos_->fill2DHistogram(tmpName, aMuonCand4Vector.Pt(), passPtCut);
+  myHistos_->fill2DHistogram(tmpName, aMuonCand3Vector.Pt(), passPtCut);
 
   tmpName = hName+"HighPt"+std::to_string(ptCut);
-  myHistos_->fill2DHistogram(tmpName, aMuonCand4Vector.Pt(), passPtCut);
+  myHistos_->fill2DHistogram(tmpName, aMuonCand3Vector.Pt(), passPtCut);
 
   tmpName = hName+"RecoMuonPtVsL1Pt";
-  myHistos_->fill2DHistogram(tmpName, aMuonCand4Vector.Pt(), selectedCand.ptValue());
+  myHistos_->fill2DHistogram(tmpName, aMuonCand3Vector.Pt(), selectedCand.ptValue());
   
   //Generic eff vs selected variable calculated for muons on plateau
-  if(!selType.size() && aMuonCand4Vector.Pt()<ptCut+20) return;
+  if(!selType.size() && aMuonCand3Vector.Pt()<ptCut+20) return;
   tmpName = hName+"Eta"+std::to_string(ptCut);
-  myHistos_->fill2DHistogram(tmpName, aMuonCand4Vector.Eta(), passPtCut);
+  myHistos_->fill2DHistogram(tmpName, aMuonCand3Vector.Eta(), passPtCut);
 
   tmpName = hName+"Phi"+std::to_string(ptCut);
-  myHistos_->fill2DHistogram(tmpName, aMuonCand4Vector.Phi(), passPtCut);
+  myHistos_->fill2DHistogram(tmpName, aMuonCand3Vector.Phi(), passPtCut);
   
 
 
@@ -170,19 +169,18 @@ void GMTAnalyzer::fillTurnOnCurve( const TLorentzVector & aMuonCand4Vector,
 // //////////////////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////////////////
  
-void GMTAnalyzer::fillRateHisto(const TLorentzVector & aRecoMuon4Vector,
+void GMTAnalyzer::fillRateHisto(const TVector3 & aRecoMuon3Vector,
                                 const std::string & sysType,
 				                        const std::string & selType){
 
   //Generator level information is not available for the neutrino sample
  
 
-  if(name()=="NU_RATEAnalyzer" && aRecoMuon4Vector.Pt()>0.0) return;
+  if(name()=="NU_RATEAnalyzer" && aRecoMuon3Vector.Pt()>0.0) return;
 
   const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
   std::string hName = "h2D"+sysType+"Rate"+selType;
 
-  //std::cout<< " take the system type out in here : Rate :: " << sysType<< "\n";
   L1Obj selectedCand;
   for(auto aCand: myL1Coll){
 
@@ -191,30 +189,31 @@ void GMTAnalyzer::fillRateHisto(const TLorentzVector & aRecoMuon4Vector,
 
   }
   bool pass = selectedCand.ptValue()>=20;
-  if(selType.find("Tot")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon4Vector.Pt(),selectedCand.ptValue());
-  if(selType.find("VsEta")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon4Vector.Pt(),pass*aRecoMuon4Vector.Eta()+(!pass)*99);
-  if(selType.find("VsPt")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon4Vector.Pt(),pass*aRecoMuon4Vector.Pt()+(!pass)*(-100));
+  if(selType.find("Tot")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),selectedCand.ptValue());
+  if(selType.find("VsEta")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),pass*aRecoMuon3Vector.Eta()+(!pass)*99);
+  if(selType.find("VsPt")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),pass*aRecoMuon3Vector.Pt()+(!pass)*(-100));
 
 
 }
 // //////////////////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////////////////
-void GMTAnalyzer::fillHistosForRecoMuon( const TLorentzVector & aRecoMuon4Vector){   
+void GMTAnalyzer::fillHistosForRecoMuon( const TVector3 & aRecoMuon3Vector, const std::string & ObjectTag){   
+          
+          
 
- 
-
-  bool isGMTAcceptance = fabs(aRecoMuon4Vector.Eta())<2.4;
+  if(ObjectTag !="RECOMUON")return; 
+  bool isGMTAcceptance = fabs(aRecoMuon3Vector.Eta())<2.4;
   if(!isGMTAcceptance) return;
 
-  bool isOMTFAcceptance = fabs(aRecoMuon4Vector.Eta())>0.83 && fabs(aRecoMuon4Vector.Eta())<1.24;
+  bool isOMTFAcceptance = fabs(aRecoMuon3Vector.Eta())>0.83 && fabs(aRecoMuon3Vector.Eta())<1.24;
   if(!isOMTFAcceptance) return;
-  myHistos_->fill1DHistogram("h1DPtProbe", aRecoMuon4Vector.Pt());
-  myHistos_->fill1DHistogram("h1DAbsEtaProbe", std::abs(aRecoMuon4Vector.Eta()));
+  myHistos_->fill1DHistogram("h1DPtProbe", aRecoMuon3Vector.Pt());
+  myHistos_->fill1DHistogram("h1DAbsEtaProbe", std::abs(aRecoMuon3Vector.Eta()));
   
   std::string selType = "";
   for(int iCut=0;iCut<31;++iCut){
-      fillTurnOnCurve(aRecoMuon4Vector, iCut, "OMTF", selType);
-      fillTurnOnCurve(aRecoMuon4Vector, iCut, "uGMT", selType);
+      fillTurnOnCurve(aRecoMuon3Vector, iCut, "OMTF", selType);
+      fillTurnOnCurve(aRecoMuon3Vector, iCut, "uGMT", selType);
   }
 
   int iCut = 18;
@@ -222,14 +221,14 @@ void GMTAnalyzer::fillHistosForRecoMuon( const TLorentzVector & aRecoMuon4Vector
   for(int iType=0;iType<=3;++iType){
     float ptCut = GMTHistograms::ptBins[iCut];
     
-    if(iType==0) pass = aRecoMuon4Vector.Pt()>ptCut + 20;
-    else if(iType==1) pass = aRecoMuon4Vector.Pt()>ptCut && aRecoMuon4Vector.Pt()<(ptCut+5);
-    else if(iType==2) pass = aRecoMuon4Vector.Pt()<10;
+    if(iType==0) pass = aRecoMuon3Vector.Pt()>ptCut + 20;
+    else if(iType==1) pass = aRecoMuon3Vector.Pt()>ptCut && aRecoMuon3Vector.Pt()<(ptCut+5);
+    else if(iType==2) pass = aRecoMuon3Vector.Pt()<10;
     if(!pass) continue;
     
     selType = std::string(TString::Format("Type%d",iType));
-    fillTurnOnCurve(aRecoMuon4Vector, iCut, "OMTF", selType);
-    fillTurnOnCurve(aRecoMuon4Vector, iCut, "uGMT", selType);
+    fillTurnOnCurve(aRecoMuon3Vector, iCut, "OMTF", selType);
+    fillTurnOnCurve(aRecoMuon3Vector, iCut, "uGMT", selType);
   }
 
 
@@ -296,33 +295,55 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   double tmpDelta = 2*deltaM_Z;
   for (auto aMuonCand: myMuonColl){   
       randomMuonLeg.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(), nominalMuonMass);
-      fillRateHisto(randomMuonLeg, "OMTF","Tot");
-      fillRateHisto(randomMuonLeg, "OMTF","Tot");
+      randomthreeVector.SetPtEtaPhi(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi());
+      fillRateHisto(randomthreeVector, "OMTF","Tot");
+      fillRateHisto(randomthreeVector, "uGMT","Tot");
       tmpDelta = std::abs((tagFourVector+randomMuonLeg).M()-m_Z);
       if(aMuonCand.tightID() && tmpDelta<deltaM_Z){
       deltaM_Z = tmpDelta;
       aProbeCand = aMuonCand;   
     }
   }
-  bool isOMTFAcceptanceP = fabs(aProbeCand.eta())>0.83 && fabs(aProbeCand.eta())<1.24;
-  if(!isOMTFAcceptanceP) return false;
+  //bool isOMTFAcceptanceP = fabs(aProbeCand.eta())>0.83 && fabs(aProbeCand.eta())<1.24;
+  //if(!isOMTFAcceptanceP) return false;
   if(aProbeCand.pt()<1) return false;// Select only hard scattering proccesses 
 
   probeFourVector.SetPtEtaPhiM(aProbeCand.pt(), aProbeCand.eta(), aProbeCand.phi(), nominalMuonMass);
+  probethreeVector.SetPtEtaPhi(aProbeCand.pt(), aProbeCand.eta(), aProbeCand.phi());
   myHistos_->fill1DHistogram("h1DDiMuonMassTagProbe",(tagFourVector+probeFourVector).M());   
-  fillHistosForRecoMuon(probeFourVector);
+  fillHistosForRecoMuon(probethreeVector, "RECOMUON");
 
   double deltaRCut = 0.6;
   for (auto aMuonCand: myMuonColl){   
-      TLorentzVector puMuonLeg;
       puMuonLeg.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(), nominalMuonMass);
+      puthreeVector.SetPtEtaPhi(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi());
       if(aMuonCand.tightID() 
                && customDeltaR(puMuonLeg,tagFourVector) > deltaRCut 
                && customDeltaR(puMuonLeg,probeFourVector) > deltaRCut){
-        fillHistosForRecoMuon(puMuonLeg);
+        fillHistosForRecoMuon(puthreeVector, "RECOMUON");
       }
     }
-    
+  
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////// LEVELONE-OBJECT //////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/*
+  const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
+  for(auto levelOneCand: myL1Coll){
+               
+               if(levelOneCand.q !=12 && levelOneCand.bx !=0) continue ;     
+     std::cout << "type of the detector : "    << levelOneCand.type           << "\n"
+               << "Quality of the processor : "<< levelOneCand.q              << "\n"
+	       << "Tranverse momentum : "      << levelOneCand.ptValue()      << "\n"
+               << "Pseudorapidity :  "         << levelOneCand.etaValue()     << "\n"
+               << "Azimuthal angle : "         << levelOneCand.nanoPhiValue() << "\n"
+               << "Bunch crossing : "          << levelOneCand.bx             << "\n";
+  }
+*/
+  
   return true;
 }
 //////////////////////////////////////////////////////////////////////////////

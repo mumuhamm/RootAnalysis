@@ -96,6 +96,7 @@ std::string GMTHistograms::getTemplateName(const std::string& name){
 
   if(name.find("Quality")!=std::string::npos) templateName = "h2DQualityTemplate";
   if(name.find("OMTFRateTot")!=std::string::npos) templateName = "h2DOMTFRateTotTemplate";
+  if(name.find("uGMTRateTot")!=std::string::npos) templateName = "h2DuGMTRateTotTemplate";
   if(name.find("RateVsEta")!=std::string::npos) templateName = "h2DRateVsEtaTemplate";
   if(name.find("RateVsPt")!=std::string::npos) templateName = "h2DRateVsPtTemplate";
   if(name.find("RateVsQuality")!=std::string::npos) templateName = "h2DRateVsQualityTemplate";
@@ -136,6 +137,7 @@ void GMTHistograms::defineHistograms(){
 
  //Rate histos
  add2DHistogram("h2DOMTFRateTotTemplate","",404,1,202,404,1,202,file_);
+ add2DHistogram("h2DuGMTRateTotTemplate","",404,1,202,404,1,202,file_);
  add2DHistogram("h2DRateVsEtaTemplate","",404,1,202,60,-3,3,file_);
  add2DHistogram("h2DRateVsPtTemplate","",404,1,202,100,0,50,file_);
  add2DHistogram("h2DRateVsQualityTemplate","",404,1,202,201,-0.5,200.5,file_);
@@ -168,7 +170,7 @@ void GMTHistograms::finalizeHistograms(){
   plotSingleHistogram("h1DDiMuonMassTagProbe"); 
   plotSingleHistogram("h2DOMTFRecoMuonPtVsL1Pt");
   plotSingleHistogram("h2DOMTFRateTot");
- 
+  plotSingleHistogram("h2DuGMTRateTot");
  
   //Efficiency as a function of eta and phis, Lines for selected points on the turn on curve shown
   
@@ -585,7 +587,6 @@ void GMTHistograms::plotRate(std::string type){
   
   TH1 *hRateuGMT = getRateHisto("uGMT",type);
   TH1 *hRateOMTF = getRateHisto("OMTF",type);
-  //std::cout<< " when printing the uGMT what happens : "<< hRateuGMT->GetName()<< "\n";
   std::cout<< " the name of the histrogram : when plot rate :: printing OMTF : "<<  hRateOMTF->GetName() << "\n";
   if(!hRateOMTF || !hRateuGMT) return;
   std::cout<< " again printing the OMTF : "<< hRateOMTF->GetName()<< "\n";
@@ -608,14 +609,14 @@ void GMTHistograms::plotRate(std::string type){
 
   if(type.find("Tot")!=std::string::npos){
     hRateOMTF->SetAxisRange(2,50);
-    //hRateuGMT->SetAxisRange(2,50);
+    hRateuGMT->SetAxisRange(2,50);
     hRateOMTF->SetMinimum(1E1);
     hRateOMTF->SetMaximum(2E5);
     hRateOMTF->SetXTitle("p_{T}^{cut} (GeV/c)");
     c->SetLogy();
     c->SetGrid(1,0);
     hRateOMTF->Draw();
-    //hRateuGMT->DrawCopy("same");
+    hRateuGMT->DrawCopy("same");
    
     std::cout<<"Rate OMTF @ 20 GeV: "<< hRateOMTF->GetBinContent(hRateOMTF->FindBin(20-0.01))<<std::endl;
   }  

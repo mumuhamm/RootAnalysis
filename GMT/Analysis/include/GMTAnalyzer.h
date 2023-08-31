@@ -44,21 +44,24 @@ class GMTAnalyzer:public Analyzer{
   TLorentzVector tagFourVector;
   TLorentzVector probeFourVector;
   TLorentzVector randomMuonLeg;
-  TVector3 tagVector;
-  TVector3 probeVector;
-
+  TLorentzVector puMuonLeg;
+  TVector3 tagthreeVector;
+  TVector3 probethreeVector;
+  TVector3 puthreeVector;
+  TVector3 randomthreeVector;
+  TVector3 level1threeVector;
   void setHistos(GMTHistograms *histos) { myHistos_ = histos;};
   void parseProcessName(); 
 private:
   
+  void fillHistosForRecoMuon( const TVector3 & aRecoMuon3Vector, const std::string & ObjectTag);  
   
-  void fillHistosForRecoMuon( const TLorentzVector & aRecoMuon4Vector);
 
-  void fillTurnOnCurve(  const TLorentzVector & aMuonCand4Vector,
+  void fillTurnOnCurve(  const TVector3 & aMuonCand3Vector,
                       const int & ptCut, const std::string & sysType,
 		                  const std::string & selType);
 
-  void fillRateHisto(const TLorentzVector & aRecoMuon4Vector,
+  void fillRateHisto(const TVector3 & aRecoMuon3Vector,
                     const std::string & sysType,
 		                const std::string & selType);
   double customDeltaR(TLorentzVector T1, TLorentzVector T2);
