@@ -50,20 +50,22 @@ class GMTAnalyzer:public Analyzer{
   TVector3 puthreeVector;
   TVector3 randomthreeVector;
   TVector3 level1threeVector;
+  TVector3 aL1Object3Vector;
+  TVector3 aRecoMuon3Vector;
   void setHistos(GMTHistograms *histos) { myHistos_ = histos;};
   void parseProcessName(); 
 private:
   
-  void fillHistosForRecoMuon( const TVector3 & aRecoMuon3Vector, const std::string & ObjectTag);  
+  void fillHistosForObjectVectors( const TVector3 & instantiatedVector, const std::string & ObjectTag);  
   
 
   void fillTurnOnCurve(  const TVector3 & aMuonCand3Vector,
                       const int & ptCut, const std::string & sysType,
 		                  const std::string & selType);
 
-  void fillRateHisto(const TVector3 & aRecoMuon3Vector,
-                    const std::string & sysType,
-		                const std::string & selType);
+  void fillRateHisto(const TVector3 & instantiatedVector,
+                                const std::string & sysType, const std::string & selType, 
+                       const std::string & ObjectTag);
   double customDeltaR(TLorentzVector T1, TLorentzVector T2);
   bool passQuality(const L1Obj & aL1Cand,
 		              const std::string & sysType,

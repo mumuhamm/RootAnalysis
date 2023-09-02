@@ -169,17 +169,18 @@ void GMTAnalyzer::fillTurnOnCurve( const TVector3 & aMuonCand3Vector,
 // //////////////////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////////////////
  
-void GMTAnalyzer::fillRateHisto(const TVector3 & aRecoMuon3Vector,
+void GMTAnalyzer::fillRateHisto(const TVector3 & instantiatedVector,
                                 const std::string & sysType,
-				                        const std::string & selType){
-
-  //Generator level information is not available for the neutrino sample
+				                        const std::string & selType, const std::string & ObjectTag){
  
-
+  std::string hName = "h2D"+sysType+"Rate"+selType; 
+  if(ObjectTag =="RECOMUON") aRecoMuon3Vector = instantiatedVector;
+  if(ObjectTag =="L1OBJECT") aL1Object3Vector = instantiatedVector;
+   
+  //Generator level information is not available for the neutrino sample
   if(name()=="NU_RATEAnalyzer" && aRecoMuon3Vector.Pt()>0.0) return;
-
+/*
   const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
-  std::string hName = "h2D"+sysType+"Rate"+selType;
 
   L1Obj selectedCand;
   for(auto aCand: myL1Coll){
@@ -187,9 +188,11 @@ void GMTAnalyzer::fillRateHisto(const TVector3 & aRecoMuon3Vector,
     bool pass = passQuality(aCand ,sysType, selType);    
     if(pass && selectedCand.ptValue()<aCand.ptValue()) selectedCand = aCand;
 
-  }
-  bool pass = selectedCand.ptValue()>=20;
-  if(selType.find("Tot")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),selectedCand.ptValue());
+  }*/
+
+  //bool pass = selectedCand.ptValue()>=20;
+  bool pass = aL1Object3Vector.Pt() >= 20;
+  if(selType.find("Tot")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),aL1Object3Vector.Pt());
   if(selType.find("VsEta")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),pass*aRecoMuon3Vector.Eta()+(!pass)*99);
   if(selType.find("VsPt")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),pass*aRecoMuon3Vector.Pt()+(!pass)*(-100));
 
@@ -197,11 +200,11 @@ void GMTAnalyzer::fillRateHisto(const TVector3 & aRecoMuon3Vector,
 }
 // //////////////////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////////////////
-void GMTAnalyzer::fillHistosForRecoMuon( const TVector3 & aRecoMuon3Vector, const std::string & ObjectTag){   
+void GMTAnalyzer::fillHistosForObjectVectors( const TVector3 & instantiatedVector, const std::string & ObjectTag){   
           
           
 
-  if(ObjectTag !="RECOMUON")return; 
+  if(ObjectTag =="RECOMUON") aRecoMuon3Vector = instantiatedVector; 
   bool isGMTAcceptance = fabs(aRecoMuon3Vector.Eta())<2.4;
   if(!isGMTAcceptance) return;
 
@@ -296,8 +299,8 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   for (auto aMuonCand: myMuonColl){   
       randomMuonLeg.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(), nominalMuonMass);
       randomthreeVector.SetPtEtaPhi(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi());
-      fillRateHisto(randomthreeVector, "OMTF","Tot");
-      fillRateHisto(randomthreeVector, "uGMT","Tot");
+      fillRateHisto(randomthreeVector, "OMTF","Tot", "RECOMUON");
+      fillRateHisto(randomthreeVector, "uGMT","Tot", "RECOMUON");
       tmpDelta = std::abs((tagFourVector+randomMuonLeg).M()-m_Z);
       if(aMuonCand.tightID() && tmpDelta<deltaM_Z){
       deltaM_Z = tmpDelta;
@@ -311,7 +314,7 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   probeFourVector.SetPtEtaPhiM(aProbeCand.pt(), aProbeCand.eta(), aProbeCand.phi(), nominalMuonMass);
   probethreeVector.SetPtEtaPhi(aProbeCand.pt(), aProbeCand.eta(), aProbeCand.phi());
   myHistos_->fill1DHistogram("h1DDiMuonMassTagProbe",(tagFourVector+probeFourVector).M());   
-  fillHistosForRecoMuon(probethreeVector, "RECOMUON");
+  fillHistosForObjectVectors(probethreeVector, "RECOMUON");
 
   double deltaRCut = 0.6;
   for (auto aMuonCand: myMuonColl){   
@@ -320,7 +323,7 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
       if(aMuonCand.tightID() 
                && customDeltaR(puMuonLeg,tagFourVector) > deltaRCut 
                && customDeltaR(puMuonLeg,probeFourVector) > deltaRCut){
-        fillHistosForRecoMuon(puthreeVector, "RECOMUON");
+        fillHistosForObjectVectors(puthreeVector, "RECOMUON");
       }
     }
   
@@ -330,19 +333,30 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-/*
+
   const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
   for(auto levelOneCand: myL1Coll){
+               bool localnanoPass = false;
+               if (useNanoAOD){localnanoPass = levelOneCand.q == 12 && levelOneCand.bx == 0;}
+               else {localnanoPass = (levelOneCand.type == 9 || levelOneCand.type == 13) && levelOneCand.q == 12 && levelOneCand.bx == 0;}
+               if(!localnanoPass) continue; 
+               aL1Object3Vector.SetPtEtaPhi(levelOneCand.ptValue(), levelOneCand.etaValue(), levelOneCand.nanoPhiValue());
+               fillRateHisto(aL1Object3Vector, "OMTF","Tot", "L1OBJECT");
+               fillRateHisto(aL1Object3Vector, "uGMT","Tot", "L1OBJECT");
                
-               if(levelOneCand.q !=12 && levelOneCand.bx !=0) continue ;     
-     std::cout << "type of the detector : "    << levelOneCand.type           << "\n"
-               << "Quality of the processor : "<< levelOneCand.q              << "\n"
-	       << "Tranverse momentum : "      << levelOneCand.ptValue()      << "\n"
-               << "Pseudorapidity :  "         << levelOneCand.etaValue()     << "\n"
-               << "Azimuthal angle : "         << levelOneCand.nanoPhiValue() << "\n"
-               << "Bunch crossing : "          << levelOneCand.bx             << "\n";
-  }
-*/
+
+/* 
+     std::cout << "type of the detector     : " << levelOneCand.type           << "\n"
+               << "Quality of the processor : " << levelOneCand.q              << "\n";
+	       << "Tranverse momentum       : " << levelOneCand.ptValue()      << "\n"
+               << "Pseudorapidity           : " << levelOneCand.etaValue()     << "\n"
+               << "Azimuthal angle          : " << levelOneCand.nanoPhiValue() << "\n"
+               << "Bunch crossing           : " << levelOneCand.bx             << "\n"
+               << "-----------------------------------------------------------"<< "\n";
+*/ 
+
+ }
+
   
   return true;
 }
