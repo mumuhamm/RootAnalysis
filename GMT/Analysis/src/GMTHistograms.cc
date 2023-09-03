@@ -247,7 +247,7 @@ void GMTHistograms::DrawLabels(TCanvas* c){//, const TString& eraLabel) {
     lumiLabel->SetTextFont(42);
     lumiLabel->SetTextSize(0.04);
     lumiLabel->SetTextAlign(31); // Right-align
-    TString lumiText =  "2022-32fb^{-1}(13.6 TeV)";//"DrellYan";// now just era we have lumi info though eraLabel;
+    TString lumiText =  "nanoAOD(13.6 TeV)";//"DrellYan";// now just era we have lumi info though eraLabel;
     lumiLabel->DrawLatexNDC(0.94444, 0.92, lumiText);
 
     c->Update();
@@ -368,7 +368,8 @@ void GMTHistograms::plotEffVsVar(const std::string & sysType,
     hEff->SetMarkerStyle(21+icut);
     hEff->SetMarkerColor(color[icut]); // Please fix the title accriding to histograms 
     std::cout << " histname : "<< hEff->GetName() << " and the varname "<< varName<< "\n";
-    hEff->SetTitle(";  p_{T}^{reco} (GeV/c);Efficiency");
+    if(varName.find("Phi")!=std::string::npos)hEff->SetTitle(";|#phi^{#mu}| (rad); L1 Muon Efficiency");
+    if(varName.find("Eta")!=std::string::npos)hEff->SetTitle(";|#eta^{#mu}| (a.u.); L1 Muon Efficiency");
     if (icut==0)hEff->Draw();
     else hEff->Draw("same");
     TString nameCut = TString::Format("%d", (int)GMTHistograms::ptBins[ptCuts[icut]])+" GeV/c";
