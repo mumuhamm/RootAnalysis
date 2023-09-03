@@ -97,21 +97,15 @@ bool GMTAnalyzer::passQuality(const L1Obj & aL1Cand,
 }
 // //////////////////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////////////////
-void GMTAnalyzer::fillTurnOnCurve( const TVector3 & aMuonCand3Vector,
-                                  const int & iPtCut,
-				                          const std::string & sysType,
-				                          const std::string & selType){
+void GMTAnalyzer::fillTurnOnCurve( const TVector3 & instantiatedVector,
+                                  const int &  iPtCut, const std::string & sysType,
+				                       const std::string & selType){
   
  //int is important for histo name construction
 
   int ptCut = GMTHistograms::ptBins[iPtCut];
- /* bool useNanoAOD = (inputType == "nanoAOD");
-  if (useNanoAOD) {
-     const EventProxyOMTFNANOAOD& myProxy = dynamic_cast<const EventProxyOMTFNANOAOD&>(myEvent);
-     const_cast<EventProxyOMTFNANOAOD&>(myProxy).fillnanoL1ObjColl();
-     myL1ObjColl = const_cast<EventProxyOMTFNANOAOD&>(myProxy).getL1ObjColl();
- }*/
-  const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
+  aRecoMuon3Vector = instantiatedVector;
+  
   std::string hName = "h2DGmt"+selType;
   if(sysType=="OMTF") {   
     hName = "h2DOMTF"+selType;
@@ -124,44 +118,65 @@ void GMTAnalyzer::fillTurnOnCurve( const TVector3 & aMuonCand3Vector,
   }
 
   ///Find the best matching L1 candidate
+  TVector3 selectedL13Vector;
   double deltaR = 0.4;
-  L1Obj selectedCand;
+  bool useNanoAOD = (inputType == "nanoAOD");
+  if (useNanoAOD) { 
+ for (const auto& obj : aL1Object3VectorCollection) {
+    //std::cout<< " pt, eta , phi :"<< obj.Pt() <<"\t"<< obj.Eta() << "\t"<< obj.Phi()<< "\n";
+    double phiValue = obj.Phi();
+    if (phiValue > M_PI) phiValue -= 2 * M_PI;
 
-   
+    double dEta = std::abs(aRecoMuon3Vector.Eta() - obj.Eta());
+    double dPhi = std::abs(aRecoMuon3Vector.Phi() - phiValue);
+    if (dPhi > 2 * M_PI) dPhi -= 2 * M_PI;
+    
+    double delta = sqrt(dEta * dEta + dPhi * dPhi);
+    if (delta < 3.0 && selectedL13Vector.Pt() < obj.Pt() ) {
+        deltaR = delta;
+        selectedL13Vector.SetPtEtaPhi(obj.Pt(), obj.Eta(), obj.Phi());
+    }
+  }
+}
+ 
+else{
+  L1Obj selectedCand;
+  const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
   for(auto aCand: myL1Coll){
     bool pass = passQuality(aCand ,sysType, selType);    
     if(!pass) continue;
     double phiValue = aCand.phiValue();
     if(phiValue>M_PI) phiValue-=2*M_PI;
     
-    double dEta = std::abs(aMuonCand3Vector.Eta()-aCand.etaValue());
-    double dPhi = std::abs(aMuonCand3Vector.Phi()-phiValue);
+    double dEta = std::abs(aRecoMuon3Vector.Eta()-aCand.etaValue());
+    double dPhi = std::abs(aRecoMuon3Vector.Phi()-phiValue);
     if(dPhi>2*M_PI) dPhi=-2*M_PI;
     double delta = sqrt(dEta*dEta + dPhi*dPhi);
     if(delta<deltaR && selectedCand.ptValue()<aCand.ptValue()){
       deltaR = delta;
-      selectedCand = aCand;      
+      selectedCand = aCand;
+      selectedL13Vector.SetPtEtaPhi(aCand.ptValue(), aCand.etaValue(), aCand.phiValue());      
     }    
   }
-
-  bool passPtCut = selectedCand.ptValue()>=ptCut && selectedCand.ptValue()>0;
-   
+}
+  
+  bool passPtCut = selectedL13Vector.Pt()>=ptCut && selectedL13Vector.Pt()>0;
   std::string tmpName = hName+"Pt"+std::to_string(ptCut);
-  myHistos_->fill2DHistogram(tmpName, aMuonCand3Vector.Pt(), passPtCut);
+  myHistos_->fill2DHistogram(tmpName, aRecoMuon3Vector.Pt(), passPtCut);
 
   tmpName = hName+"HighPt"+std::to_string(ptCut);
-  myHistos_->fill2DHistogram(tmpName, aMuonCand3Vector.Pt(), passPtCut);
+  myHistos_->fill2DHistogram(tmpName, aRecoMuon3Vector.Pt(), passPtCut);
 
   tmpName = hName+"RecoMuonPtVsL1Pt";
-  myHistos_->fill2DHistogram(tmpName, aMuonCand3Vector.Pt(), selectedCand.ptValue());
+  myHistos_->fill2DHistogram(tmpName, aRecoMuon3Vector.Pt(), selectedL13Vector.Pt());
   
   //Generic eff vs selected variable calculated for muons on plateau
-  if(!selType.size() && aMuonCand3Vector.Pt()<ptCut+20) return;
+  if(!selType.size() && aRecoMuon3Vector.Pt()<ptCut+20) return;
   tmpName = hName+"Eta"+std::to_string(ptCut);
-  myHistos_->fill2DHistogram(tmpName, aMuonCand3Vector.Eta(), passPtCut);
+  myHistos_->fill2DHistogram(tmpName, aRecoMuon3Vector.Eta(), passPtCut);
 
   tmpName = hName+"Phi"+std::to_string(ptCut);
-  myHistos_->fill2DHistogram(tmpName, aMuonCand3Vector.Phi(), passPtCut);
+  myHistos_->fill2DHistogram(tmpName, aRecoMuon3Vector.Phi(), passPtCut);
   
 
 
@@ -171,28 +186,32 @@ void GMTAnalyzer::fillTurnOnCurve( const TVector3 & aMuonCand3Vector,
  
 void GMTAnalyzer::fillRateHisto(const TVector3 & instantiatedVector,
                                 const std::string & sysType,
-				                        const std::string & selType, const std::string & ObjectTag){
- 
+				                        const std::string & selType){
+  
+  bool useNanoAOD = (inputType == "nanoAOD"); 
   std::string hName = "h2D"+sysType+"Rate"+selType; 
-  if(ObjectTag =="RECOMUON") aRecoMuon3Vector = instantiatedVector;
-  if(ObjectTag =="L1OBJECT") aL1Object3Vector = instantiatedVector;
-   
+  aRecoMuon3Vector = instantiatedVector;
+  TVector3 selectedL13Vector;
   //Generator level information is not available for the neutrino sample
   if(name()=="NU_RATEAnalyzer" && aRecoMuon3Vector.Pt()>0.0) return;
-/*
-  const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
 
+ if (useNanoAOD) {
+  for (const auto& obj : aL1Object3VectorCollection) {
+    if (selectedL13Vector.Pt() < obj.Pt())selectedL13Vector = obj;
+  }
+ }
+ else{
+  const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
   L1Obj selectedCand;
   for(auto aCand: myL1Coll){
-
     bool pass = passQuality(aCand ,sysType, selType);    
     if(pass && selectedCand.ptValue()<aCand.ptValue()) selectedCand = aCand;
-
-  }*/
-
-  //bool pass = selectedCand.ptValue()>=20;
-  bool pass = aL1Object3Vector.Pt() >= 20;
-  if(selType.find("Tot")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),aL1Object3Vector.Pt());
+    selectedL13Vector.SetPtEtaPhi(selectedCand.ptValue(), selectedCand.etaValue(), selectedCand.phiValue());   
+  }
+}
+  
+  bool pass = selectedL13Vector.Pt() >= 20;
+  if(selType.find("Tot")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),selectedL13Vector.Pt());
   if(selType.find("VsEta")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),pass*aRecoMuon3Vector.Eta()+(!pass)*99);
   if(selType.find("VsPt")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),pass*aRecoMuon3Vector.Pt()+(!pass)*(-100));
 
@@ -200,11 +219,11 @@ void GMTAnalyzer::fillRateHisto(const TVector3 & instantiatedVector,
 }
 // //////////////////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////////////////
-void GMTAnalyzer::fillHistosForObjectVectors( const TVector3 & instantiatedVector, const std::string & ObjectTag){   
+void GMTAnalyzer::fillHistosForObjectVectors( const TVector3 & instantiatedVector){   
           
           
 
-  if(ObjectTag =="RECOMUON") aRecoMuon3Vector = instantiatedVector; 
+  aRecoMuon3Vector = instantiatedVector; 
   bool isGMTAcceptance = fabs(aRecoMuon3Vector.Eta())<2.4;
   if(!isGMTAcceptance) return;
 
@@ -282,10 +301,10 @@ else {
 const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   if(myMuonColl.empty()) return false;
   if(myMuonColl.size() < 2 )return false;
-
+   
    MuonObj aTagCand =  myMuonColl.at(0);
-  bool tagPass = aTagCand.pt()>10 && aTagCand.matchedisohlt();
-  if(!tagPass) return true;
+   bool tagPass = aTagCand.pt()>10 && aTagCand.matchedisohlt();
+   if(!tagPass) return true;
  
   
 
@@ -299,22 +318,20 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   for (auto aMuonCand: myMuonColl){   
       randomMuonLeg.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(), nominalMuonMass);
       randomthreeVector.SetPtEtaPhi(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi());
-      fillRateHisto(randomthreeVector, "OMTF","Tot", "RECOMUON");
-      fillRateHisto(randomthreeVector, "uGMT","Tot", "RECOMUON");
+      fillRateHisto(randomthreeVector, "OMTF","Tot");
+      fillRateHisto(randomthreeVector, "uGMT","Tot");
       tmpDelta = std::abs((tagFourVector+randomMuonLeg).M()-m_Z);
       if(aMuonCand.tightID() && tmpDelta<deltaM_Z){
       deltaM_Z = tmpDelta;
       aProbeCand = aMuonCand;   
     }
   }
-  //bool isOMTFAcceptanceP = fabs(aProbeCand.eta())>0.83 && fabs(aProbeCand.eta())<1.24;
-  //if(!isOMTFAcceptanceP) return false;
   if(aProbeCand.pt()<1) return false;// Select only hard scattering proccesses 
 
   probeFourVector.SetPtEtaPhiM(aProbeCand.pt(), aProbeCand.eta(), aProbeCand.phi(), nominalMuonMass);
   probethreeVector.SetPtEtaPhi(aProbeCand.pt(), aProbeCand.eta(), aProbeCand.phi());
   myHistos_->fill1DHistogram("h1DDiMuonMassTagProbe",(tagFourVector+probeFourVector).M());   
-  fillHistosForObjectVectors(probethreeVector, "RECOMUON");
+  fillHistosForObjectVectors(probethreeVector);
 
   double deltaRCut = 0.6;
   for (auto aMuonCand: myMuonColl){   
@@ -323,7 +340,7 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
       if(aMuonCand.tightID() 
                && customDeltaR(puMuonLeg,tagFourVector) > deltaRCut 
                && customDeltaR(puMuonLeg,probeFourVector) > deltaRCut){
-        fillHistosForObjectVectors(puthreeVector, "RECOMUON");
+        fillHistosForObjectVectors(puthreeVector);
       }
     }
   
@@ -333,17 +350,18 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
+if (useNanoAOD) {
   const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
+  aL1Object3VectorCollection.clear();
   for(auto levelOneCand: myL1Coll){
-               bool localnanoPass = false;
-               if (useNanoAOD){localnanoPass = levelOneCand.q == 12 && levelOneCand.bx == 0;}
-               else {localnanoPass = (levelOneCand.type == 9 || levelOneCand.type == 13) && levelOneCand.q == 12 && levelOneCand.bx == 0;}
+               bool localnanoPass = false;   
+               localnanoPass = levelOneCand.q == 12 && levelOneCand.bx == 0;
                if(!localnanoPass) continue; 
+               double epsilon = 1e-6;
+               double eta = levelOneCand.etaValue();
+               if (std::isnan(eta) || (fabs(eta) < epsilon)) {continue;}
                aL1Object3Vector.SetPtEtaPhi(levelOneCand.ptValue(), levelOneCand.etaValue(), levelOneCand.nanoPhiValue());
-               fillRateHisto(aL1Object3Vector, "OMTF","Tot", "L1OBJECT");
-               fillRateHisto(aL1Object3Vector, "uGMT","Tot", "L1OBJECT");
-               
+               aL1Object3VectorCollection.push_back(aL1Object3Vector);
 
 /* 
      std::cout << "type of the detector     : " << levelOneCand.type           << "\n"
@@ -354,8 +372,9 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
                << "Bunch crossing           : " << levelOneCand.bx             << "\n"
                << "-----------------------------------------------------------"<< "\n";
 */ 
-
+               }
  }
+
 
   
   return true;

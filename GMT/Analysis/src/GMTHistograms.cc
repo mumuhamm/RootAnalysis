@@ -247,7 +247,7 @@ void GMTHistograms::DrawLabels(TCanvas* c){//, const TString& eraLabel) {
     lumiLabel->SetTextFont(42);
     lumiLabel->SetTextSize(0.04);
     lumiLabel->SetTextAlign(31); // Right-align
-    TString lumiText =  "NanoAOD";//"DrellYan";// now just era we have lumi info though eraLabel;
+    TString lumiText =  "2022-32fb^{-1}(13.6 TeV)";//"DrellYan";// now just era we have lumi info though eraLabel;
     lumiLabel->DrawLatexNDC(0.94444, 0.92, lumiText);
 
     c->Update();
@@ -367,6 +367,7 @@ void GMTHistograms::plotEffVsVar(const std::string & sysType,
     TEfficiency* hEff =DivideErr(hNum,hDenom,"Pt_Int","B");
     hEff->SetMarkerStyle(21+icut);
     hEff->SetMarkerColor(color[icut]); // Please fix the title accriding to histograms 
+    std::cout << " histname : "<< hEff->GetName() << " and the varname "<< varName<< "\n";
     hEff->SetTitle(";  p_{T}^{reco} (GeV/c);Efficiency");
     if (icut==0)hEff->Draw();
     else hEff->Draw("same");
@@ -721,7 +722,7 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     c->Print(TString::Format("fig_png/%s.pdf",hName.c_str()).Data());
     
     if(histName.find("DiMuonMassTagProbe")!=std::string::npos){
-    RooRealVar mass("mass", "m_{Z}(#mu^{+}#mu^{-}) (GeV/c^{2})", 75, 110);
+    RooRealVar mass("mass", "m_{Z}(#mu^{+}#mu^{-}) (GeV/c^{2})", 80, 100);
     RooDataHist dh("dh", "dh", mass, Import(*diMuonClone));
     RooRealVar mean("mean", "mean", 91.18, 90, 93);
     RooRealVar width("width", "width", 5.5, 0, 20);
@@ -744,7 +745,8 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     RooRealVar nSig("nSig", "nSig",500,0,(int)h1D->GetEntries());
     RooRealVar nBkg("nBkg", "nBkg",400,0,(int)h1D->GetEntries());
     RooRealVar nlsb("nlsb", "nlsb",200,0,(int)h1D->GetEntries());
-    RooAddPdf zpdf("zpdf","zpdf",RooArgList(brwg,expoBg,pol), RooArgList(nSig,nBkg,nlsb));
+    RooAddPdf zpdf("zpdf","zpdf",RooArgList(john,expoBg), RooArgList(nSig,nBkg));
+    //RooAddPdf zpdf("zpdf","zpdf",RooArgList(brwg,expoBg,pol), RooArgList(nSig,nBkg,nlsb));
     RooFitResult* fitRes = zpdf.fitTo(dh,Save(true),NumCPU(8), RooFit::Minimizer("Minuit2", "Migrad"));
     fitRes->Print("v");
     
@@ -769,9 +771,9 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     double chisquare_mass = zmassf->chiSquare();
     std::cout<<"Chi square of mass fit is :   "<< chisquare_mass<<"\n";
 
-    zpdf.plotOn(zmassf, RooFit::LineColor(kGreen),RooFit::Components("brwg"), RooFit::Name("signal"), LineWidth(2), LineStyle(4));
+    zpdf.plotOn(zmassf, RooFit::LineColor(kGreen),RooFit::Components("john"), RooFit::Name("signal"), LineWidth(2), LineStyle(4));
     zpdf.plotOn(zmassf,RooFit::LineColor(kRed),RooFit::Components("expoBg"), RooFit::Name("combinatorial"), LineWidth(2), LineStyle(6));
-    zpdf.plotOn(zmassf,RooFit::LineColor(kGreen),RooFit::Components("pol"), RooFit::Name("lowerSB"), LineWidth(2), LineStyle(8)); 
+    //zpdf.plotOn(zmassf,RooFit::LineColor(kGreen),RooFit::Components("pol"), RooFit::Name("lowerSB"), LineWidth(2), LineStyle(8)); 
   
     TLegend *leg = new TLegend(0.15,0.55,0.45,0.85, NULL, "brNDC");
     leg->SetTextSize(0.05);
@@ -781,7 +783,7 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     leg->AddEntry(zmassf->findObject("Total"),"Total PDF","l");
     leg->AddEntry(zmassf->findObject("signal"),"Z^{0}#rightarrow #mu^{+}#mu^{-}","l");
     leg->AddEntry(zmassf->findObject("combinatorial"),"Combinatorial","l");
-    leg->AddEntry(zmassf->findObject("lowerSB"),"lowerSB","l");
+    //leg->AddEntry(zmassf->findObject("lowerSB"),"lowerSB","l");
     leg->SetBorderSize(0);
     TPad *pad1 = new TPad("pad1","pad1",0,0.3,1,0.97);
     TPad *pad2 = new TPad("pad2","pad2",0.0,0.1,1,0.27);
