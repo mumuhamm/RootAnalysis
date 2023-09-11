@@ -335,7 +335,7 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   myHistos_->fill1DHistogram("h1DDiMuonMassTagProbe",(tagFourVector+probeFourVector).M());   
   fillHistosForObjectVectors(probethreeVector);
 
-/*
+
   double deltaRCut = 0.6;
   for (auto aMuonCand: myMuonColl){   
       puMuonLeg.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(), nominalMuonMass);
@@ -347,7 +347,7 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
       }
     }
   
-*/
+
   ////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////// LEVELONE-OBJECT //////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////////////
