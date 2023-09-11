@@ -41,13 +41,13 @@ using namespace RooFit ;
 int nPtBins = 32;
 const float GMTHistograms::ptBins[36]={0., 0.1,
   		 1.5, 2., 2.5, 3., 3.5, 4., 4.5, 5., 6., 7., 8.,
-		 10., 12., 14., 16., 18., 20., 22,  24, 26, 30., 35., 40., 45.,
+		 10., 12., 14., 16., 18., 20., 22, 24, 26, 30., 35., 40., 45.,
   		 50., 60., 70., 80., 90., 100., 120., 140.,
 		 160., 200};
 
 const int GMTHistograms::color[6] = {kBlack, kBlue, kRed, kMagenta, kTeal, kGreen};
 //Single mu
-const int GMTHistograms::ptCutsOMTF[4] =     {0, 14, 19, 20};
+const int GMTHistograms::ptCutsOMTF[4] =   {0, 14, 19, 20};
 
 /////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////
@@ -247,7 +247,7 @@ void GMTHistograms::DrawLabels(TCanvas* c){//, const TString& eraLabel) {
     lumiLabel->SetTextFont(42);
     lumiLabel->SetTextSize(0.04);
     lumiLabel->SetTextAlign(31); // Right-align
-    TString lumiText =  "nanoAOD(13.6 TeV)";//"DrellYan";// now just era we have lumi info though eraLabel;
+    TString lumiText =  "20.1fb^{-1}(13.6 TeV)";//"DrellYan";// now just era we have lumi info though eraLabel;
     lumiLabel->DrawLatexNDC(0.94444, 0.92, lumiText);
 
     c->Update();
@@ -265,7 +265,7 @@ void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh){
   l.SetFillStyle(4000);
   l.SetBorderSize(0);
   l.SetFillColor(10);
-  c->SetGrid(0,1);
+  c->SetGrid(1,1);
 
   TString hName("");
   const int *ptCuts = ptCutsOMTF;
@@ -290,8 +290,8 @@ void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh){
     l.AddEntry(hEff,nameCut.Data());
     c->Update();
     auto graph = hEff->GetPaintedGraph();
-    graph->GetXaxis()->SetRangeUser(0.0,100.0);
-    graph->GetYaxis()->SetRangeUser(0.0,1.0);
+    graph->GetXaxis()->SetRangeUser(0.0,60.0);
+    graph->GetYaxis()->SetRangeUser(0.0,1.1);
     c->Update();
     DrawLabels(c); 
     c->Update();
@@ -351,7 +351,7 @@ void GMTHistograms::plotEffVsVar(const std::string & sysType,
   l.SetFillStyle(4000);
   l.SetBorderSize(0);
   l.SetFillColor(10);
-  c->SetGrid(0,1);
+  c->SetGrid(1,1);
 
   TString hName("");
   const int *ptCuts = ptCutsOMTF;
@@ -367,7 +367,6 @@ void GMTHistograms::plotEffVsVar(const std::string & sysType,
     TEfficiency* hEff =DivideErr(hNum,hDenom,"Pt_Int","B");
     hEff->SetMarkerStyle(21+icut);
     hEff->SetMarkerColor(color[icut]); // Please fix the title accriding to histograms 
-    std::cout << " histname : "<< hEff->GetName() << " and the varname "<< varName<< "\n";
     if(varName.find("Phi")!=std::string::npos)hEff->SetTitle(";|#phi^{#mu}| (rad); L1 Muon Efficiency");
     if(varName.find("Eta")!=std::string::npos)hEff->SetTitle(";|#eta^{#mu}| (a.u.); L1 Muon Efficiency");
     if (icut==0)hEff->Draw();
@@ -401,7 +400,7 @@ void GMTHistograms::plotEffVsEta(const std::string & sysType){
   l.SetFillStyle(4000);
   l.SetBorderSize(0);
   l.SetFillColor(10);
-  c->SetGrid(0,1);
+  c->SetGrid(1,1);
   c->SetLeftMargin(0.1);
   c->SetRightMargin(0.35);
 
@@ -466,7 +465,7 @@ void GMTHistograms::plotGMTVsOther(int iPtCut,
   l.SetBorderSize(0);
   l.SetFillColor(10);
   c->SetLogx(1);
-  c->SetGrid(0,1);
+  c->SetGrid(1,1);
 
   std::string hName = "h2D"+sysType+"Pt"+std::to_string((int)ptCut);
   TH2F* h2D = get2DHistogram(hName);

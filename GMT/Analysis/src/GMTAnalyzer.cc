@@ -119,7 +119,7 @@ void GMTAnalyzer::fillTurnOnCurve( const TVector3 & instantiatedVector,
 
   ///Find the best matching L1 candidate
   TVector3 selectedL13Vector;
-  double deltaR = 0.4;
+  double deltaR = 0.2;
   bool useNanoAOD = (inputType == "nanoAOD");
   if (useNanoAOD) { 
  for (const auto& obj : aL1Object3VectorCollection) {
@@ -244,7 +244,7 @@ void GMTAnalyzer::fillHistosForObjectVectors( const TVector3 & instantiatedVecto
     float ptCut = GMTHistograms::ptBins[iCut];
     
     if(iType==0) pass = aRecoMuon3Vector.Pt()>ptCut + 20;
-    else if(iType==1) pass = aRecoMuon3Vector.Pt()>ptCut && aRecoMuon3Vector.Pt()<(ptCut+5);
+    else if(iType==1) pass = aRecoMuon3Vector.Pt()>ptCut && aRecoMuon3Vector.Pt()<(ptCut+3);
     else if(iType==2) pass = aRecoMuon3Vector.Pt()<10;
     if(!pass) continue;
     
@@ -303,7 +303,8 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   if(myMuonColl.size() < 2 )return false;
    
    MuonObj aTagCand =  myMuonColl.at(0);
-   bool tagPass = aTagCand.pt()>10 && aTagCand.matchedisohlt();
+   //std::cout << " the particle flow and the tracker isolation value " << aTagCand.isTrackIsolated()<< "\t"<< aTagCand.isParticleFlowIsolated()<< "\n";
+   bool tagPass = aTagCand.pt()>27 && aTagCand.matchedisohlt() && aTagCand.tightID() && aTagCand.isParticleFlowIsolated();
    if(!tagPass) return true;
  
   
@@ -321,7 +322,8 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
       fillRateHisto(randomthreeVector, "OMTF","Tot");
       fillRateHisto(randomthreeVector, "uGMT","Tot");
       tmpDelta = std::abs((tagFourVector+randomMuonLeg).M()-m_Z);
-      if(aMuonCand.tightID() && tmpDelta<deltaM_Z){
+      //if(aMuonCand.tightID() && tmpDelta<deltaM_Z ){
+      if(aMuonCand.tightID() && aMuonCand.isParticleFlowIsolated() && customDeltaR(randomMuonLeg, tagFourVector) > 0.4){
       deltaM_Z = tmpDelta;
       aProbeCand = aMuonCand;   
     }
@@ -333,6 +335,7 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
   myHistos_->fill1DHistogram("h1DDiMuonMassTagProbe",(tagFourVector+probeFourVector).M());   
   fillHistosForObjectVectors(probethreeVector);
 
+/*
   double deltaRCut = 0.6;
   for (auto aMuonCand: myMuonColl){   
       puMuonLeg.SetPtEtaPhiM(aMuonCand.pt(), aMuonCand.eta(), aMuonCand.phi(), nominalMuonMass);
@@ -344,7 +347,7 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
       }
     }
   
-
+*/
   ////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////// LEVELONE-OBJECT //////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////////////
