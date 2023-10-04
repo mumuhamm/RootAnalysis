@@ -247,7 +247,7 @@ void GMTHistograms::DrawLabels(TCanvas* c){//, const TString& eraLabel) {
     lumiLabel->SetTextFont(42);
     lumiLabel->SetTextSize(0.04);
     lumiLabel->SetTextAlign(31); // Right-align
-    TString lumiText =  "20.1fb^{-1}(13.6 TeV)";//"DrellYan";// now just era we have lumi info though eraLabel;
+    TString lumiText =  "DrellYan(13.6 TeV)";//32fb^{-1}"DrellYan";// now just era we have lumi info though eraLabel;
     lumiLabel->DrawLatexNDC(0.94444, 0.92, lumiText);
 
     c->Update();
@@ -314,7 +314,7 @@ void GMTHistograms::plotVar(const std::string & sysType,
 
   TCanvas* c = new TCanvas(TString::Format("Var%s_%s",varName.c_str(),sysType.c_str()),
 			   TString::Format("Var%s_%s",varName.c_str(),sysType.c_str()),
-			   460,500);
+			   600,600);
 
 
   TString hName = "h1D"+varName+sysType;
@@ -344,7 +344,7 @@ void GMTHistograms::plotEffVsVar(const std::string & sysType,
 
   TCanvas* c = new TCanvas(TString::Format("EffVs%s_%s",varName.c_str(),sysType.c_str()),
 			   TString::Format("EffVs%s_%s",varName.c_str(),sysType.c_str()),
-			   460,500);
+			   600,600);
 
   TLegend l(0.6513158,0.1673729,0.8903509,0.470339,NULL,"brNDC");
   l.SetTextSize(0.05);
@@ -356,7 +356,7 @@ void GMTHistograms::plotEffVsVar(const std::string & sysType,
   TString hName("");
   const int *ptCuts = ptCutsOMTF;
  
-  for (int icut=0; icut<2;++icut){
+  for (int icut=0; icut<=3;++icut){
     float ptCut = GMTHistograms::ptBins[ptCuts[icut]];
     hName = "h2D"+sysType+varName+std::to_string((int)ptCut);
     TH2F* h2D = this->get2DHistogram(hName.Data());
@@ -557,8 +557,14 @@ TH2F* GMTHistograms::makeRateWeights(TH2 *hOrig){
 TH1* GMTHistograms::getRateHisto(std::string sysType,
 				 std::string type){
 
+
+
+
   std::string hName = "h2D"+sysType+"Rate"+type;
   std::cout << " the name of the histogram , if exists : "<< hName << "\n";
+  
+  
+
   TH2F* h2D_original = (TH2F*)this->get2DHistogram(hName);
   if(! h2D_original) return 0;
   TH2F* h2D = (TH2F*)h2D_original->Clone("h2D");
@@ -571,11 +577,11 @@ TH1* GMTHistograms::getRateHisto(std::string sysType,
   }
   
   TH1D *hRate = h2D->ProjectionY(("hRate"+sysType).c_str());
-  if(sysType=="OMTF" || sysType=="uGMT") hRate = h2D->ProjectionX("hRate");
+  //if(sysType=="OMTF" || sysType=="uGMT") hRate = h2D->ProjectionX("hRate");
   std::cout<< " the name after the projection : "<< hRate->GetName()<< "\n";
   hRate->SetYTitle("Arbitrary units");
   hRate->SetLineWidth(3);
-  if(type.find("Tot")!=std::string::npos) return(TH1*)hRate->Clone("hRateClone");
+  if(type.find("Tot")!=std::string::npos) return(TH1*)hRate->Clone(hRate->GetName());
   if(type.find("VsEta")!=std::string::npos) return (TH1*)hRate->Clone("hRateClone");
   if(type.find("VsPt")!=std::string::npos) return (TH1*)hRate->Clone("hRateClone");
   if(type.find("VsQuality")!=std::string::npos) return (TH1*)hRate->Clone("hRateClone");
@@ -589,8 +595,11 @@ void GMTHistograms::plotRate(std::string type){
   TH1 *hRateuGMT = getRateHisto("uGMT",type);
   TH1 *hRateOMTF = getRateHisto("OMTF",type);
   std::cout<< " the name of the histrogram : when plot rate :: printing OMTF : "<<  hRateOMTF->GetName() << "\n";
+  std::cout<< " the name of the histrogram : when plot rate :: printing uGMT : "<<  hRateuGMT->GetName() << "\n";
   if(!hRateOMTF || !hRateuGMT) return;
   std::cout<< " again printing the OMTF : "<< hRateOMTF->GetName()<< "\n";
+  std::cout<< " again printing the uGMT : "<< hRateuGMT->GetName()<< "\n";
+
   hRateOMTF->SetLineWidth(3); 
   hRateOMTF->SetLineColor(1);
   
@@ -598,7 +607,7 @@ void GMTHistograms::plotRate(std::string type){
   hRateuGMT->SetLineColor(2);
   hRateuGMT->SetLineStyle(2);
  
-  TCanvas* c = new TCanvas("cRate","cRate",1.5*420,1.5*500);
+  TCanvas* c = new TCanvas("cRate","cRate",0,0,600,600);
   c->SetLogy(1);
   c->SetGrid(1,1);
 
@@ -637,7 +646,8 @@ void GMTHistograms::plotRate(std::string type){
     hRateuGMT->Draw();
   }
 
-  leg->AddEntry(hRateuGMT,"OMTF");
+  leg->AddEntry(hRateuGMT,"uGMT");
+  leg->AddEntry(hRateOMTF,"OMTF");
   leg->Draw();
   DrawLabels(c);
   c->Print(("fig_eps/Rate"+type+".eps").c_str());
@@ -688,6 +698,8 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
 
   if(h2D) {
     h2D->SetDirectory(myDirCopy);
+    std::cout<< " name of this 2D histogram : " << h2D->GetName()<< "\n";
+    const std::string  histName2D = h2D->GetName();
     h2D->SetLineWidth(3);
     h2D->Scale(1.0/h2D->Integral());
     h2D->SetXTitle("p_{T}^{Reco} (GeV/c)");
@@ -699,6 +711,74 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     DrawLabels(c);
     c->Print(TString::Format("fig_png/%s.png",hName.c_str()).Data());
     c->Print(TString::Format("fig_png/%s.pdf",hName.c_str()).Data());
+    
+
+
+
+
+    TCanvas* ratecanvas = new TCanvas("ratecanvas", "ratecanvas", 600, 600);
+    ratecanvas->SetLogy(1);
+    ratecanvas->SetGrid(1,1);
+    TH1D* hdivideI = nullptr;
+    if (histName2D.find("uGMTRateTot") != std::string::npos){
+    auto uGMTDen = h2D->ProjectionX("X");
+    auto uGMTNum = h2D->ProjectionY("Y");
+    hdivideI = (TH1D*)uGMTNum->Clone("hdivideI");
+    hdivideI->Sumw2();
+    double lhcFrequency = 11245.6;  //Hz
+    double collidingBunches = 2544; 
+    double aFactor = lhcFrequency * collidingBunches; 
+    hdivideI->Scale(aFactor);
+    hdivideI->Divide(uGMTDen);
+    hdivideI->Draw("colz");
+
+    //ratecanvas->Divide(1,2);
+    //ratecanvas->cd(1);uGMTDen->Draw(); ratecanvas->cd(2);uGMTNum->Draw();
+    }
+    ratecanvas->Print("fig_png/LevelOne_TwowardRateDPlot.pdf");
+    
+      
+/*
+    TLegend l(0.2,0.65,0.44,0.86,NULL,"brNDC");
+    l.SetTextSize(0.05);
+    l.SetFillStyle(4000);
+    l.SetBorderSize(0);
+    l.SetFillColor(10);
+    c->SetLogx(1);
+    c->SetGrid(1,1);
+     
+     TH1D* hdivideI = nullptr;
+     TH1D* hdivideII = nullptr;
+
+     if (histName2D.find("uGMTRateTot") != std::string::npos) {
+      auto uGMTDen = h2D->ProjectionX("X");
+      auto uGMTNum = h2D->ProjectionY("Y");
+
+      hdivideI = (TH1D*)uGMTNum->Clone("hdivideI");
+      hdivideI->Sumw2();
+      hdivideI->Divide(uGMTDen);
+      hdivideI->Draw("colz");
+   }
+
+    if (histName2D.find("OMTFRateTot") != std::string::npos) {
+      auto OMTFDen = h2D->ProjectionX("X");
+      auto OMTFNum = h2D->ProjectionY("Y");
+
+      hdivideII = (TH1D*)OMTFNum->Clone("hdivideII");
+      hdivideII->Sumw2();
+      hdivideII->Divide(OMTFDen);
+      hdivideII->Draw("colz same");
+    }
+
+     l.AddEntry(hdivideI,"uGMT");
+     l.AddEntry(hdivideII,"OMTF");
+     l.Draw();
+
+     DrawLabels(ratecanvas);
+     ratecanvas->Print("fig_eps/LevelOne_Rate.eps");
+     ratecanvas->Print("fig_png/LevelOne_Rate.png");
+     ratecanvas->Print("fig_png/LevelOne_Rate.pdf");
+*/
   }
   if(h1D) {
     h1D->SetDirectory(myDirCopy);

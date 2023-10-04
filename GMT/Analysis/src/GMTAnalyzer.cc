@@ -209,9 +209,11 @@ void GMTAnalyzer::fillRateHisto(const TVector3 & instantiatedVector,
     selectedL13Vector.SetPtEtaPhi(selectedCand.ptValue(), selectedCand.etaValue(), selectedCand.phiValue());   
   }
 }
-  
+  //double lhcFrequency = 11245.6;  //Hz
+  //double collidingBunches = 2544; 
+  double aFactor = 1.0;// lhcFrequency * collidingBunches; 
   bool pass = selectedL13Vector.Pt() >= 20;
-  if(selType.find("Tot")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),selectedL13Vector.Pt());
+  if(selType.find("Tot")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),selectedL13Vector.Pt()*aFactor);
   if(selType.find("VsEta")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),pass*aRecoMuon3Vector.Eta()+(!pass)*99);
   if(selType.find("VsPt")!=std::string::npos) myHistos_->fill2DHistogram(hName,aRecoMuon3Vector.Pt(),pass*aRecoMuon3Vector.Pt()+(!pass)*(-100));
 
@@ -322,8 +324,8 @@ const std::vector<MuonObj> & myMuonColl = myMuonObjColl->getMuonObjs();
       fillRateHisto(randomthreeVector, "OMTF","Tot");
       fillRateHisto(randomthreeVector, "uGMT","Tot");
       tmpDelta = std::abs((tagFourVector+randomMuonLeg).M()-m_Z);
-      //if(aMuonCand.tightID() && tmpDelta<deltaM_Z ){
-      if(aMuonCand.tightID() && aMuonCand.isParticleFlowIsolated() && customDeltaR(randomMuonLeg, tagFourVector) > 0.4){
+      
+      if(aMuonCand.tightID() && aMuonCand.isParticleFlowIsolated()&& tmpDelta<deltaM_Z  && customDeltaR(randomMuonLeg, tagFourVector) > 0.4){
       deltaM_Z = tmpDelta;
       aProbeCand = aMuonCand;   
     }
