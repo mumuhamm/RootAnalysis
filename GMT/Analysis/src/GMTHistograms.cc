@@ -41,7 +41,7 @@ using namespace RooFit ;
 int nPtBins = 32;
 const float GMTHistograms::ptBins[36]={0., 0.1,
   		 1.5, 2., 2.5, 3., 3.5, 4., 4.5, 5., 6., 7., 8.,
-		 10., 12., 14., 16., 18., 20., 22, 24, 26, 30., 35., 40., 45.,
+		 10., 12., 14., 16., 18., 20., 22, 25, 26, 30., 35., 40., 45.,
   		 50., 60., 70., 80., 90., 100., 120., 140.,
 		 160., 200};
 
@@ -160,6 +160,8 @@ void GMTHistograms::finalizeHistograms(){
   
   plotEffPanel("OMTF");// Many turn on curves 
   plotEffPanel("OMTF", true);// High pT turn on curves 
+  plotEffPanel("uGMT");// Many turn on curves 
+  plotEffPanel("uGMT", true);// High pT turn on curves 
  
   //1D histograms 
   
@@ -247,7 +249,7 @@ void GMTHistograms::DrawLabels(TCanvas* c){//, const TString& eraLabel) {
     lumiLabel->SetTextFont(42);
     lumiLabel->SetTextSize(0.04);
     lumiLabel->SetTextAlign(31); // Right-align
-    TString lumiText =  "DrellYan(13.6 TeV)";//32fb^{-1}"DrellYan";// now just era we have lumi info though eraLabel;
+    TString lumiText =  "32fb^{-1}(13.6 TeV)";//32fb^{-1}"DrellYan";// now just era we have lumi info though eraLabel;
     lumiLabel->DrawLatexNDC(0.94444, 0.92, lumiText);
 
     c->Update();
@@ -283,6 +285,21 @@ void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh){
     hEff->SetMarkerStyle(21+icut);
     hEff->SetMarkerColor(color[icut]);
     hEff->SetTitle("; p_{T}^{reco} (GeV/c);L1 Muon efficiency");
+    const TH1 *numeratorHist = hEff->GetPassedHistogram();
+    const TH1 *denominatorHist = hEff->GetTotalHistogram();
+    if(icut==2){
+      double numeratorBinContent = numeratorHist->GetBinContent(21); 
+      double denominatorBinContent = denominatorHist->GetBinContent(21);
+      double efficiency_out = numeratorBinContent / denominatorBinContent;
+      if (!std::isnan(efficiency_out))std::cout<< "The efficiency at 22 GeV Threshold : "<< efficiency_out<<"\n";
+    }
+     if(icut==3){
+      double numeratorBinContent = numeratorHist->GetBinContent(21); 
+      double denominatorBinContent = denominatorHist->GetBinContent(21);
+      double efficiency_out = numeratorBinContent / denominatorBinContent;
+      if (!std::isnan(efficiency_out))std::cout<< "The efficiency at 25 GeV Threshold : "<< efficiency_out<<"\n";
+
+    }
     if (icut==0)hEff->Draw();
     else hEff->Draw("same");
     TString nameCut = TString::Format("%d", (int)GMTHistograms::ptBins[ptCuts[icut]])+" GeV/c";

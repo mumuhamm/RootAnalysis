@@ -119,7 +119,7 @@ void GMTAnalyzer::fillTurnOnCurve( const TVector3 & instantiatedVector,
 
   ///Find the best matching L1 candidate
   TVector3 selectedL13Vector;
-  double deltaR = 0.2;
+  double deltaR = 0.4;
   bool useNanoAOD = (inputType == "nanoAOD");
   if (useNanoAOD) { 
  for (const auto& obj : aL1Object3VectorCollection) {
@@ -155,7 +155,15 @@ else{
     if(delta<deltaR && selectedCand.ptValue()<aCand.ptValue()){
       deltaR = delta;
       selectedCand = aCand;
-      selectedL13Vector.SetPtEtaPhi(aCand.ptValue(), aCand.etaValue(), aCand.phiValue());      
+     if(sysType=="uGMT"){
+      bool isOMTFAcceptance = fabs(selectedCand.etaValue())>0.83 && fabs(selectedCand.etaValue())<1.24;
+      if(!isOMTFAcceptance) return;
+      selectedL13Vector.SetPtEtaPhi(selectedCand.ptValue(), selectedCand.etaValue(), selectedCand.phiValue());
+     }
+     else{
+      selectedL13Vector.SetPtEtaPhi(selectedCand.ptValue(), selectedCand.etaValue(), selectedCand.phiValue());
+     }
+            
     }    
   }
 }
