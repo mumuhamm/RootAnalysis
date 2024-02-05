@@ -16,7 +16,7 @@ EventProxyBase* EventProxyOMTF::clone() const{
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 std::vector<OMTFHit> EventProxyOMTF::getHits() const{
-
+  
   std::vector<OMTFHit> theHits;
   if(!hits || !hits->size()) return theHits;
 
@@ -47,6 +47,14 @@ void EventProxyOMTF::init(std::vector<std::string> const& iFileNames){
   treeName_ = "tOmtf";
   
   EventProxyBase::init(iFileNames);
+  currentFileIndex = fChain->GetTreeNumber();
+  for (const auto& fileName : iFileNames) {
+    if (fileName.find("NeutrinoGun") != std::string::npos) {
+      sampleTypes[fileName] = "neutrino";
+    } else if (fileName.find("PromptMuon") != std::string::npos) {
+      sampleTypes[fileName] = "muon";
+    }
+  }
   
   myEvent = 0;
   myGenObjColl = 0;

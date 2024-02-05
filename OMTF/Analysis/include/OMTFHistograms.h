@@ -2,7 +2,9 @@
 #define OMTFHistograms_H
 
 #include "AnalysisHistograms.h"
-
+#include "TEfficiency.h"
+#include "TGraphAsymmErrors.h"
+#include "TCanvas.h"
 class TEfficiency;
 
 class OMTFHistograms: public AnalysisHistograms {
@@ -30,6 +32,8 @@ private:
   virtual void defineHistograms();
 
   TH1* Integrate(TH1 * histoD);
+  
+  void DrawLabels(TCanvas* c);
 
   void plotEffPanel(const std::string & sysType, const std::string & varName);
 

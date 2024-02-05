@@ -60,6 +60,7 @@ bool OMTFAnalyzer::isInEtaAcceptance(const GenObj & aGenObj){
 //////////////////////////////////////////////////////////////////////////////
 OMTFAnalyzer::OMTFAnalyzer(const std::string & aName):Analyzer(aName){
   selectionFlavours_.push_back(aName);
+  std::cout << " the name " << aName << "\n";
 }
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -168,13 +169,20 @@ void OMTFAnalyzer::fillRateHisto(const std::string & sysType,
 
   const std::vector<L1Obj> & myL1Coll = myL1ObjColl->getL1Objs();
   std::string hName = "h2D"+sysType+"Rate"+selType;
-
+  //the rate with the zero bias event is : selectedevents/zerobias events *zero bias rate 
+  // the zero bias rate is the rate of the zero bias event in Hz
+  //zero bias rate =  LHCFrequency * collidingBunches
+ // int numAcceptedEvents = 0;
+ // int numZeroBiasEvents = 0;
+  // LHC frequency and colliding bunches
+ // float LHCFrequency = 11245.6;  // Assign the actual LHC frequency
+  //int collidingBunches = 2544;  // Assign the actual number of colliding bunches
   L1Obj selectedCand;
   for(auto & aCand: myL1Coll){
     bool pass = passQuality(aCand ,sysType, selType);    
     if(pass && selectedCand.ptValue()<aCand.ptValue()) selectedCand = aCand;
   }
-
+  
   float candPt = calibratedPt(sysType, selectedCand);
   int iPtCut = OMTFHistograms::iPtCuts.at(3);
   float ptCut = OMTFHistograms::ptBins.at(iPtCut);
@@ -248,6 +256,10 @@ bool OMTFAnalyzer::analyze(const EventProxyBase& iEvent){
   clear();
 
   const EventProxyOMTF & myProxy = static_cast<const EventProxyOMTF&>(iEvent);
+ std::string currentFile = myProxy.getCurrentFile(); // replace with actual method to get current file
+  std::string sampleType = myProxy.sampleTypes.at(currentFile);
+
+  std::cout << "Processing event from sample: " << sampleType << std::endl;
 
   myEventId = myProxy.getEventId();
   myGenObjColl = myProxy.getGenObjColl();
@@ -258,12 +270,15 @@ bool OMTFAnalyzer::analyze(const EventProxyBase& iEvent){
   if(genObjVec.empty()) return false;
   
   // Filter out non-muon particles and particles with non-final state
-for (auto & aGenObj : genObjVec) {
-    if (std::abs(aGenObj.pdgId()) == 13 && std::abs(aGenObj.status()) == 1) {
+  if (myProxy.sampleTypes.at(currentFile) == "muon") {
+    std::cout << "Sample type: muon ::" << myProxy.sampleTypes.at(currentFile) << std::endl;
+    for (auto & aGenObj : genObjVec) {
+     if (std::abs(aGenObj.pdgId()) == 13 && std::abs(aGenObj.status()) == 1) {
         myGenObj = aGenObj;
         fillHistosForGenMuon();
     }
   }
+}
   fillRateHistos();
   return true;
 }

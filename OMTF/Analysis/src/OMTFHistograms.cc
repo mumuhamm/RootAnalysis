@@ -11,8 +11,29 @@
 #include "TMarker.h"
 #include "TRandom3.h"
 #include "TGaxis.h"
+#include "RooRealVar.h"
+#include "RooDataSet.h"
+#include "RooGaussian.h"
+#include "RooChebychev.h"
+#include "RooAddPdf.h"
+#include "RooExtendPdf.h"
+#include "RooFitResult.h"
+#include "TAxis.h"
+#include "RooPlot.h"
+#include "RooDataHist.h"
+#include "RooExponential.h"
+#include "RooJohnson.h"
+#include "TLatex.h"
 #include "TEfficiency.h"
-
+#include "TGraphAsymmErrors.h"
+#include "TColor.h"
+#include "RooHist.h"
+#include "RooCrystalBall.h"
+#include "RooBreitWigner.h"
+#include "RooChebychev.h"
+#include "RooPolynomial.h"
+using namespace std;
+using namespace RooFit ;
 #include "utilsL1RpcStyle.h"
 
 const std::vector<std::string> OMTFHistograms::algos = {"OMTF", "OMTFDisp", "OMTFDispU", "OMTFDispC", "GMT"};  
@@ -80,7 +101,7 @@ void OMTFHistograms::defineHistograms(){
  //Misc histos
  add1DHistogram("h1DGenPtTemplate",";p_{T} [MeV/c];",60,0,120,file_);
  add1DHistogram("h1DGenEtaTemplate",";#eta;",300,-3.0,3.0,file_);
- add1DHistogram("h1DGenDxyTemplate",";d_{xy} [cm];",50,0,500,file_);
+ add1DHistogram("h1DGenDxyTemplate",";d_{xy} [cm];",50,0,300,file_);
  add1DHistogram("h1DGenDzTemplate",";d_{z} [cm];",140,-700,700,file_);
 
  ///////////////////
@@ -93,11 +114,14 @@ void OMTFHistograms::finalizeHistograms(){
 
   AnalysisHistograms::finalizeHistograms();
   utilsL1RpcStyle()->cd();
-
-  plotOMTFVsOther(OMTFHistograms::iPtCuts.at(3),"OMTFDisp");
-  plotOMTFVsOther(OMTFHistograms::iPtCuts.at(3),"OMTFDispU");
-  plotOMTFVsOther(OMTFHistograms::iPtCuts.at(3),"OMTFDispC");
-  plotOMTFVsOther(OMTFHistograms::iPtCuts.at(3),"GMT");
+ for(int i =0 ; i<=3 ; ++i){
+  plotOMTFVsOther(OMTFHistograms::iPtCuts.at(i),"OMTF");
+  plotOMTFVsOther(OMTFHistograms::iPtCuts.at(i),"OMTFDisp");
+  plotOMTFVsOther(OMTFHistograms::iPtCuts.at(i),"OMTFDispU");
+  plotOMTFVsOther(OMTFHistograms::iPtCuts.at(i),"OMTFDispC");
+  plotOMTFVsOther(OMTFHistograms::iPtCuts.at(i),"GMT");
+ }
+  
   
   for(auto & anAlgo : algos){    
     plotEffPanel(anAlgo,"Pt");
@@ -134,6 +158,26 @@ void OMTFHistograms::finalizeHistograms(){
   plotRate("Tot");
   plotRate("VsEta");
   plotRate("VsPt"); 
+  
+
+}
+/////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////
+void OMTFHistograms::DrawLabels(TCanvas* c){
+    TLatex* cmsLabel = new TLatex();
+    cmsLabel->SetTextFont(42);
+    cmsLabel->SetTextSize(0.04);
+    cmsLabel->SetTextAlign(11); // Left-align
+    cmsLabel->DrawLatexNDC(0.17, 0.92, "#bf{CMS} #it{Simulation}");
+
+    TLatex* lumiLabel = new TLatex();
+    lumiLabel->SetTextFont(42);
+    lumiLabel->SetTextSize(0.04);
+    lumiLabel->SetTextAlign(31); // Right-align
+    TString lumiText =  "Phase-II Prompt(13.6 TeV)";//32fb^{-1}"DrellYan";// now just era we have lumi info though eraLabel;
+    lumiLabel->DrawLatexNDC(0.94444, 0.92, lumiText);
+
+    c->Update();
 }
 /////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////
@@ -178,9 +222,14 @@ void OMTFHistograms::plotEffPanel(const std::string & sysType, const std::string
     TString nameCut = TString::Format("%d", (int)OMTFHistograms::ptBins[iPtCuts[iCut]])+" GeV/c";
     if (iCut==0) nameCut = "no p_{T} cut";
     l.AddEntry(hEff,nameCut.Data(),"lp");
+    
   }
+  c->Update();
+  DrawLabels(c); 
+  c->Update();
   l.Draw();
   c->Print(TString::Format("fig_png/PanelVs%s_%s.png",varName.c_str(),sysType.c_str()).Data());
+  c->Print(TString::Format("fig_png/PanelVs%s_%s.pdf",varName.c_str(),sysType.c_str()).Data());
 }
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -223,9 +272,12 @@ void OMTFHistograms::plotEffVsVar(const std::string & sysType,
     if (iCut==0) nameCut = "no p_{T} cut";
     l.AddEntry(hEff,nameCut.c_str(),"lp");
   }
+   c->Update();
+  DrawLabels(c); 
+  c->Update();
   l.Draw();
-  c->Print(TString::Format("fig_eps/EffVs%s_%s.eps",varName.c_str(), sysType.c_str()).Data());
-  c->Print(TString::Format("fig_png/EffVs%s_%s.png",varName.c_str(), sysType.c_str()).Data());
+  c->SaveAs(TString::Format("fig_eps/EffVs%s_%s.eps",varName.c_str(), sysType.c_str()).Data());
+  c->SaveAs(TString::Format("fig_png/EffVs%s_%s.png",varName.c_str(), sysType.c_str()).Data());
 }
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -286,9 +338,12 @@ void OMTFHistograms::plotEffVsEta(const std::string & sysType){
   aLine->DrawLine(-1.24,0,-1.24,1.0);
 
   l.SetHeader(TString::Format("p_{T}^{cut} = %d  GeV/c",(int)OMTFHistograms::ptBins[iCut]).Data());
+   c->Update();
+  DrawLabels(c); 
+  c->Update();
   l.Draw();
-  c->Print(TString::Format("fig_png/EffVsEta_%s.png",sysType.c_str()).Data());
-  c->Print(TString::Format("fig_png/EffVsEta_%s.C",sysType.c_str()).Data());
+  c->SaveAs(TString::Format("fig_png/EffVsEta_%s.png",sysType.c_str()).Data());
+  c->SaveAs(TString::Format("fig_png/EffVsEta_%s.C",sysType.c_str()).Data());
 }
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -338,8 +393,9 @@ void OMTFHistograms::plotOMTFVsOther(int iPtCut,
   l.AddEntry((TObject*)0, TString::Format(tmp.c_str(),ptCut).Data(), "");
   l.AddEntry((TObject*)0, "", "");
   tmp = sysType;
-  if(sysType=="OMTFDispU") tmp = "unconstrained p_{T}";
-  if(sysType=="OMTFDispC") tmp = "constrained p_{T}";
+  if(sysType=="OMTF") tmp = "PR Algorithm";
+  if(sysType=="OMTFDispU") tmp = "PR : unconstrained p_{T}";
+  if(sysType=="OMTFDispC") tmp = "PR : constrained p_{T}";
   l.AddEntry(hEffOther, tmp.c_str(), "lp");
   l.AddEntry(hEffOMTF, "CMSSW default", "lp");
   l.DrawClone();
@@ -348,13 +404,16 @@ void OMTFHistograms::plotOMTFVsOther(int iPtCut,
   aLine.SetLineColor(2);
   aLine.SetLineWidth(3);
   aLine.DrawLine(ptCut,0,ptCut,1.04);
-
-  c->Print(TString::Format("fig_eps/OMTFVs%s_%d.eps",sysType.c_str(),(int)ptCut).Data());
-  c->Print(TString::Format("fig_png/OMTFVs%s_%d.png",sysType.c_str(),(int)ptCut).Data());
+  c->Update();
+  DrawLabels(c); 
+  c->Update();
+  c->SaveAs(TString::Format("fig_eps/OMTFVs%s_%d.eps",sysType.c_str(),(int)ptCut).Data());
+  c->SaveAs(TString::Format("fig_png/OMTFVs%s_%d.png",sysType.c_str(),(int)ptCut).Data());
+   c->SaveAs(TString::Format("fig_png/OMTFVs%s_%d.pdf",sysType.c_str(),(int)ptCut).Data());
 
   c->SetLogy();
-  c->Print(TString::Format("fig_eps/OMTFVs%s_%d_log.eps",sysType.c_str(),(int)ptCut).Data());
-  c->Print(TString::Format("fig_png/OMTFVs%s_%d_log.png",sysType.c_str(),(int)ptCut).Data());
+  c->SaveAs(TString::Format("fig_eps/OMTFVs%s_%d_log.eps",sysType.c_str(),(int)ptCut).Data());
+  c->SaveAs(TString::Format("fig_png/OMTFVs%s_%d_log.png",sysType.c_str(),(int)ptCut).Data());
 }
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -391,7 +450,7 @@ TH1* OMTFHistograms::getRateHisto(std::string sysType,
   if(!h2D_original) return 0;
   TH2F* h2D = (TH2F*)h2D_original->Clone("h2D");
   if(!h2D) return 0;
-
+ std::cout<< " flavour size "<<selectionFlavours_.size()<<std::endl;
   if(selectionFlavours_.size() &&
      selectionFlavours_[0].find("NU_RATE")==std::string::npos){
     TH2F *hWeights = makeRateWeights(h2D);
@@ -416,8 +475,9 @@ void OMTFHistograms::plotRate(std::string type){
   TH1 *hRateOMTF = getRateHisto("OMTF",type);
   TH1 *hRateOMTFdisp = getRateHisto("OMTFDisp",type);
   TH1 *hRateOMTFdispC = getRateHisto("OMTFDispC",type);
+  TH1 *hRateOMTFdispU = getRateHisto("OMTFDispU",type);
   
-  if(!hRateVx || !hRateOMTF || !hRateOMTFdispC || !hRateOMTFdisp) return;
+  if(!hRateVx || !hRateOMTF || !hRateOMTFdispC || !hRateOMTFdisp || !hRateOMTFdispU) return;
 
   int iPtCut = OMTFHistograms::iPtCuts.at(3);
   float ptCut = OMTFHistograms::ptBins.at(iPtCut);
@@ -425,21 +485,21 @@ void OMTFHistograms::plotRate(std::string type){
   hRateVx->SetLineWidth(3);
   hRateOMTF->SetLineWidth(3);
   hRateOMTFdispC->SetLineWidth(3);
-  hRateOMTFdisp->SetLineWidth(3);
+  hRateOMTFdispU->SetLineWidth(3);
 
-  hRateVx->SetLineColor(1);
-  hRateOMTF->SetLineColor(4);
-  hRateOMTFdispC->SetLineColor(2);
-  hRateOMTFdisp->SetLineColor(kYellow+4);
+  hRateVx->SetLineColor(kBlue+1);
+  hRateOMTF->SetLineColor(kMagenta+2);
+  hRateOMTFdispC->SetLineColor(kOrange+8);
+  hRateOMTFdispU->SetLineColor(12);
 
   hRateOMTFdispC->SetLineStyle(2);
-  hRateOMTFdisp->SetLineStyle(1);
+  hRateOMTFdispU->SetLineStyle(1);
 
   TCanvas* c = new TCanvas("cRate","Rate", 600, 650);
   c->SetLogy(1);
   c->SetGrid(1,1);
 
-  TLegend *leg = new TLegend(0.43,0.8,0.8,0.95,NULL,"brNDC");
+  TLegend *leg = new TLegend(0.50,0.7,0.95,0.89,NULL,"brNDC");
   leg->SetTextSize(0.04);
   leg->SetFillStyle(4000);
   leg->SetBorderSize(0);
@@ -453,23 +513,23 @@ void OMTFHistograms::plotRate(std::string type){
     c->Divide(2);
     TPad *pad1 = (TPad*)c->GetPad(1);
     TPad *pad2 = (TPad*)c->GetPad(2);
-    pad1->SetPad(0.01,0.29,0.99,0.99);
-    pad2->SetPad(0.01,0.01,0.99,0.29);
+    pad1->SetPad(0.01,0.255,0.99,0.92);
+    pad2->SetPad(0.01,0.01,0.99,0.25);
 
-    pad1->SetTopMargin(0.0);
+    pad1->SetTopMargin(0.02);
     pad1->SetBottomMargin(0.008);
     
-    pad2->SetTopMargin(0.0); 
+    pad2->SetTopMargin(0.02); 
     pad2->SetBottomMargin(0.28);
-    
-    pad1->Draw();
-    pad1->cd();
     pad1->SetLogy();
-    pad1->SetGrid(1,0);
-    hRateVx->Draw();
-    hRateOMTF->DrawCopy("same");
+    pad1->SetGrid(1,1);
+    pad2->SetGrid(1,1);
+    pad1->Draw();
+
+    pad1->cd();
+    hRateOMTF->Draw();
     hRateOMTFdispC->DrawCopy("same");
-    hRateOMTFdisp->DrawCopy("same");
+    hRateOMTFdispU->DrawCopy("same");
     
     std::cout<<"Rate OMTF CMSSW default @ "<<ptCut<<" GeV "<< hRateOMTF->GetBinContent(hRateOMTF->FindBin(ptCut+0.01))<<std::endl;
     std::cout<<"Rate OMTFdispC @ "<<ptCut<<" GeV "<< hRateOMTFdispC->GetBinContent(hRateOMTFdispC->FindBin(ptCut+0.01))<<std::endl;
@@ -477,6 +537,11 @@ void OMTFHistograms::plotRate(std::string type){
     c->cd();
     pad2->Draw();
     pad2->cd();
+
+    
+    hRateOMTFdispC->Divide(hRateOMTF);
+    hRateOMTFdispU->Divide(hRateOMTF);
+    //hRateVx->Divide(hRateOMTF);
 
     hRateOMTFdispC->GetXaxis()->SetRangeUser(2,50);
     hRateOMTFdispC->SetXTitle("p_{T}^{cut} [GeV/c]");
@@ -486,16 +551,16 @@ void OMTFHistograms::plotRate(std::string type){
     hRateOMTFdispC->GetYaxis()->SetLabelSize(0.1);
     hRateOMTFdispC->GetYaxis()->SetTitleSize(0.1);    
     hRateOMTFdispC->GetYaxis()->SetTitleOffset(0.5);
-    hRateOMTFdispC->Divide(hRateOMTF);
-    hRateOMTFdisp->Divide(hRateOMTF);
     hRateOMTFdispC->SetMaximum(2.6);
-    hRateOMTFdispC->SetMinimum(0.3);
+    hRateOMTFdispC->SetMinimum(-1.0);
     hRateOMTFdispC->DrawCopy();
-    hRateOMTFdisp->DrawCopy("same");
+    hRateOMTFdispU->DrawCopy("same");
+    //hRateVx->DrawCopy("same");
 
     TLine *aLine = new TLine(0,0,0,0);
     aLine->SetLineWidth(2);
-    aLine->SetLineColor(2);
+    aLine->SetLineStyle(10);
+    aLine->SetLineColor(7);
     aLine->DrawLine(2,1.0, 50,1.0);
     c->cd();
   }  
@@ -506,7 +571,7 @@ void OMTFHistograms::plotRate(std::string type){
     max = std::max(max, hRateOMTFdisp->GetMaximum());
     hRateOMTFdispC->SetMaximum(1.5*max);
     hRateOMTFdispC->Draw();
-    hRateOMTFdisp->Draw("same");
+    hRateOMTFdispU->Draw("same");
     hRateOMTF->Draw("same");
     leg->SetHeader(TString::Format("p_{T}^{cut} = %d  GeV/c", int(ptCut)).Data());
   }
@@ -518,18 +583,22 @@ void OMTFHistograms::plotRate(std::string type){
     max = std::max(max, hRateOMTFdisp->GetMaximum());
     hRateOMTFdispC->SetMaximum(10*max);
     hRateOMTFdispC->Draw();
-    hRateOMTFdisp->Draw("same");
+    hRateOMTFdispU->Draw("same");
     hRateOMTF->Draw("same");
     leg->SetHeader(TString::Format("p_{T}^{cut} = %d  GeV/c",int(ptCut)).Data());
   }
  
-  leg->AddEntry(hRateOMTF,"CMSSW default");
-  leg->AddEntry(hRateOMTFdispC,"p_{T} constr.");
-  leg->AddEntry(hRateOMTFdisp,"max(unconstr., constr.)");
+  leg->AddEntry(hRateOMTF,"CMSSW default", "lp");
+  //leg->AddEntry(hRateVx,"Vertex_{rate}", "lp");
+  leg->AddEntry(hRateOMTFdispC,"p_{T}^{C}", "lp");
+  leg->AddEntry(hRateOMTFdispU,"max(p_{T}^{uC},p_{T}^{C})", "lp");
   leg->Draw();
-
-  c->Print(("fig_eps/Rate"+type+".eps").c_str());
-  c->Print(("fig_png/Rate"+type+".png").c_str());  
+  c->Update();
+  DrawLabels(c); 
+  c->Update();
+  c->SaveAs(("fig_eps/Rate"+type+".eps").c_str());
+  c->SaveAs(("fig_png/Rate"+type+".png").c_str());
+  c->SaveAs(("fig_png/Rate"+type+".pdf").c_str());  
 }
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -590,7 +659,7 @@ void OMTFHistograms::plotSingleHistogram(std::string hName){
     h1D->GetYaxis()->SetTitleOffset(1.4);
     h1D->SetStats(kFALSE);
     h1D->Draw("");
-    h1D->Print();
+   // h1D->Print();
   }
   if(hName.find("dxyVsPhiBRefLayer0")!=std::string::npos){
     TF1 fDiag("fDiag","-3.8/3.0*x",-300,300);
@@ -599,8 +668,11 @@ void OMTFHistograms::plotSingleHistogram(std::string hName){
   if(hName.find("dxyVsPhiBRefLayer2")!=std::string::npos){
     TF1 fDiag("fDiag","-3.0/3.0*x",-300,300);
     fDiag.DrawCopy("same");
-  }
-   c->Print(TString::Format("fig_png/%s.png",hName.c_str()).Data());
+  } 
+  c->Update();
+  DrawLabels(c); 
+  c->Update();
+  c->SaveAs(TString::Format("fig_png/%s.png",hName.c_str()).Data());
 }
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
@@ -628,9 +700,11 @@ void OMTFHistograms::plotVar(const std::string & sysType,
   std::cout<<sysType<<" integral 0 - 0.5: "<<h1D->Integral(0,h1D->FindBin(0.5))<<std::endl;
   std::cout<<sysType<<" integral 0 - 0.05: "<<h1D->Integral(0,h1D->FindBin(0.05))<<std::endl;
   std::cout<<sysType<<" integral 0 - 0.02: "<<h1D->Integral(0,h1D->FindBin(0.02))<<std::endl;
-
- c->Print(TString::Format("fig_eps/Var%s_%s.eps",varName.c_str(), sysType.c_str()).Data());
- c->Print(TString::Format("fig_png/Var%s_%s.png",varName.c_str(), sysType.c_str()).Data());
+ c->Update();
+ DrawLabels(c); 
+ c->Update();
+ c->SaveAs(TString::Format("fig_eps/Var%s_%s.eps",varName.c_str(), sysType.c_str()).Data());
+ c->SaveAs(TString::Format("fig_png/Var%s_%s.png",varName.c_str(), sysType.c_str()).Data());
 }
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////

@@ -31,6 +31,7 @@ std::ostream& operator<< (std::ostream& stream, const OMTFHit& aHit);
       EventProxyOMTF();
       virtual ~EventProxyOMTF();
 
+
       void init(std::vector<std::string> const& iFileNames);
 
       virtual EventProxyBase* clone() const;
@@ -41,7 +42,13 @@ std::ostream& operator<< (std::ostream& stream, const OMTFHit& aHit);
 
      const L1ObjColl  *getL1ObjColl() const { return myL1ObjColl;};
 
-     std::vector<OMTFHit> getHits() const;
+     std::vector<OMTFHit> getHits()const;
+     std::map<std::string, std::string> sampleTypes;
+     std::vector<std::string> fileNames;
+     int currentFileIndex;
+     std::string getCurrentFile() const {
+    return fileNames[currentFileIndex];
+  }
      
    private:
      
@@ -51,6 +58,7 @@ std::ostream& operator<< (std::ostream& stream, const OMTFHit& aHit);
      L1ObjColl      *myL1ObjColl;
      std::vector<int> *hits;
      std::vector<int> *hitsQuality;
+     
      
 
 };
