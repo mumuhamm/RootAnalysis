@@ -175,20 +175,31 @@ void OMTFAnalyzer::fillRateHisto(const std::string & sysType,
  // int numAcceptedEvents = 0;
  // int numZeroBiasEvents = 0;
   // LHC frequency and colliding bunches
- // float LHCFrequency = 11245.6;  // Assign the actual LHC frequency
-  //int collidingBunches = 2544;  // Assign the actual number of colliding bunches
+ float LHCFrequency = 11245.6;  // Assign the actual LHC frequency
+ int collidingBunches = 2544;  // Assign the actual number of colliding bunches
+ float zeroBiasRate = LHCFrequency * collidingBunches;
   L1Obj selectedCand;
+  L1Obj selectedCandZeroBias;
+
+   if (myProxy.sampleTypes.at(currentFile) == "muon") {
   for(auto & aCand: myL1Coll){
     bool pass = passQuality(aCand ,sysType, selType);    
     if(pass && selectedCand.ptValue()<aCand.ptValue()) selectedCand = aCand;
   }
-  
+  }
+  else {
+    for(auto & aCand: myL1Coll){
+        selectedCandZeroBias = aCand;
+    }
+  }
+
   float candPt = calibratedPt(sysType, selectedCand);
   int iPtCut = OMTFHistograms::iPtCuts.at(3);
   float ptCut = OMTFHistograms::ptBins.at(iPtCut);
   bool passPtCut = isPtGeq(candPt, ptCut);
 
-  if(selType.find("Tot")!=std::string::npos) myHistos_->fill2DHistogram(hName,myGenObj.pt(), candPt);
+  if(selType.find("Tot")!=std::string::npos) myHistos_->fill2DHistogram(hName,myGenObj.pt(), candPt*zeroBiasRate/selectedCandZeroBias.ptValue());
+  //if(selType.find("Tot")!=std::string::npos) myHistos_->fill2DHistogram(hName,myGenObj.pt(), candPt);
   if(selType.find("VsEta")!=std::string::npos) myHistos_->fill2DHistogram(hName,myGenObj.pt(), passPtCut*myGenObj.eta()+(!passPtCut)*99);
   if(selType.find("VsPt")!=std::string::npos) myHistos_->fill2DHistogram(hName,myGenObj.pt(),  passPtCut*myGenObj.pt()+(!passPtCut)*(-100));
 }
