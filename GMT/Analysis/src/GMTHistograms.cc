@@ -39,15 +39,32 @@ using namespace RooFit ;
 #include "utilsL1RpcStyle.h"
 
 int nPtBins = 32;
-const float GMTHistograms::ptBins[36]={0., 0.1,
-  		 1.5, 2., 2.5, 3., 3.5, 4., 4.5, 5., 6., 7., 8.,
-		 10., 12., 14., 16., 18., 20., 22, 25, 26, 30., 35., 40., 45.,
-  		 50., 60., 70., 80., 90., 100., 120., 140.,
-		 160., 200};
+const std::vector<std::string> GMTHistograms::algos = {"OMTFC","OMTFUC","OMTFDisp", "GMT","BMTF","EMTF"};
+const std::vector<double> GMTHistograms::ptBins =  {0., 0.1, 
+                   1.5, 2., 2.5, 3., 3.5, 4., 4.5, 5., 6., 7., 8., 
+                   10., 12., 14., 16., 18., 20., 25., 30., 35., 40., 45., 
+                   50., 60., 70., 80., 90., 100., 120., 140., 160.};
+const std::vector<double> GMTHistograms::effBins = {-0.5,1.0,1.5};
 
+/*//My binning
+ {0., 4, 4.5, 5, 5.5, 6, 6.5, 7, 8.5, 10, 
+                                                    12, 14, 16, 18.5, 22, 23, 25, 28, 30, 32, 
+                                                    36, 40, 48, 54, 60, 70, 82, 96, 114, 200, 99999};
+
+
+
+ Marcin Bin 
+ { 0., 0.1, 
+                   1.5, 2., 2.5, 3., 3.5, 4., 4.5, 5., 6., 7., 8., 
+                   10., 12., 14., 16., 18., 20., 25., 30., 35., 40., 45., 
+                   50., 60., 70., 80., 90., 100., 120., 140., 160.};
+*/
 const int GMTHistograms::color[6] = {kBlack, kBlue, kRed, kMagenta, kTeal, kGreen};
 //Single mu
-const int GMTHistograms::ptCutsOMTF[4] =   {0, 14, 19, 20};
+//const int GMTHistograms::ptCutsOMTF[4] =   {0, 14, 19, 20};
+const int GMTHistograms::ptCutsOMTF[4] =   {0, 9, 14, 18}; //My bin 
+//const int GMTHistograms::ptCutsOMTF[4] =   {0, 13, 16, 19}; //Marcin Bin 
+
 
 /////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////
@@ -83,6 +100,7 @@ std::string GMTHistograms::getTemplateName(const std::string& name){
   if(name.find("DeltaEta")!=std::string::npos) templateName = "h1DDeltaEtaTemplate";
   if(name.find("DeltaPhi")!=std::string::npos) templateName = "h1DDeltaPhiTemplate";
   if(name.find("Pt")!=std::string::npos) templateName = "h2DPtTemplate";
+  if(name.find("PtUC")!=std::string::npos) templateName = "h2DPtUCTemplate";
   if(name.find("HighPt")!=std::string::npos) templateName = "h2DHighPtTemplate";
   if(name.find("PtTag")!=std::string::npos) templateName = "h1DPtTagTemplate";
   if(name.find("AbsEtaTag")!=std::string::npos) templateName = "h1DAbsEtaTagTemplate";
@@ -120,19 +138,21 @@ void GMTHistograms::defineHistograms(){
  add1DHistogram("h1DPtTagTemplate", "", 100, 0, 100, file_);
  add1DHistogram("h1DAbsEtaTagTemplate", "", 60, -2.4, 2.4, file_);
  add1DHistogram("h1DPtProbeTemplate", "", 100, 0, 100, file_);
- add1DHistogram("h1DAbsEtaProbeTemplate", "", 60, 0.8, 1.4, file_);
+ add1DHistogram("h1DAbsEtaProbeTemplate", "", 60, -2.4, 2.4, file_);
  add1DHistogram("h1DDiMuonMassTagProbeTemplate", "", 100, 70, 110, file_); 
 
 
 
  ///Efficiency histos
- add2DHistogram("h2DPtTemplate","",150,0,150,2,-0.5,1.5,file_);
+ //add2DHistogram("h2DPtTemplate","",150,0,150,2,-0.5,1.5,file_);
+ add2DHistogram("h2DPtTemplate", "", ptBins.size() - 1, ptBins.data(),effBins.size() - 1, effBins.data(), file_);
+ add2DHistogram("h2DPtUCTemplate", "", ptBins.size() - 1, ptBins.data(),effBins.size() - 1, effBins.data(), file_);
  add2DHistogram("h2DHighPtTemplate","",50,50,550,2,-0.5,1.5,file_);
  add2DHistogram("h2DRecoMuonPtVsL1PtTemplate", "", 100, 0, 120, 100, 0, 120, file_);
 
 
- add2DHistogram("h2DEtaTemplate","",60,-3,3,2,-0.5,1.5,file_);
- add2DHistogram("h2DPhiTemplate","",4*32,-3.2,3.2,2,-0.5,1.5,file_);
+ add2DHistogram("h2DEtaTemplate","",60,0,3,2,-0.5,1.5,file_);
+ add2DHistogram("h2DPhiTemplate","",4*32,0,3.2,2,-0.5,1.5,file_);
  add2DHistogram("h2DQualityTemplate","",201,-0.5,200.5,2,-0.5,1.5,file_);
 
  //Rate histos
@@ -162,7 +182,11 @@ void GMTHistograms::finalizeHistograms(){
   plotEffPanel("OMTF", true);// High pT turn on curves 
   plotEffPanel("uGMT");// Many turn on curves 
   plotEffPanel("uGMT", true);// High pT turn on curves 
- 
+  plotEffPanel("BMTF");// Many turn on curves 
+  plotEffPanel("EMTF");// Many turn on curves 
+  plotEffPanel("OMTF");// Many turn on curves
+  plotEffPanel("OMTF", false, true); // Many turn on curves with unconstrained Pt
+  plotEffPanel("OMTF", true, true); // High pT turn on curves with unconstrained Pt
   //1D histograms 
   
   plotSingleHistogram("h1DPtTag");
@@ -179,15 +203,20 @@ void GMTHistograms::finalizeHistograms(){
   plotEffVsEta("OMTF");
   plotEffVsVar("OMTF", "Eta");
   plotEffVsVar("OMTF", "Phi");
+
+  plotEffVsEta("uGMT");
+  plotEffVsVar("uGMT", "Eta");
+  plotEffVsVar("uGMT", "Phi");
     
   //Turn on curves for many pT thresholds.
   ///Lines for reference - Phase2 uGMT, and other algorithm shown
   for(int iPtCode=1;iPtCode<=30;++iPtCode){
+      plotGMTVsOther(iPtCode,"uGMT");
       plotGMTVsOther(iPtCode,"OMTF");
   }
 
   plotRate("Tot");
-
+  
 }
 /////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////
@@ -221,20 +250,19 @@ TH1* GMTHistograms::Integrate(TH1 * histoD) {
 }
 /////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////
-TEfficiency * GMTHistograms::DivideErr(TH1D * h1, TH1D * h2,const char * name,const char * optErr){
+TEfficiency * GMTHistograms::DivideErr(const std::string & hName){
 
-
-      if (!h1) std::cout <<"DivideErr called, but histogram (h1) pointer is:"<<h1<<std::endl;
-      if (!h2) std::cout <<"DivideErr called, but histogram (h2) pointer is:"<<h1<<std::endl;
-      if (!h1 || !h2) return 0;
-      TEfficiency * hout = 0;
-      if(TEfficiency::CheckConsistency(*h1,*h2)){
-                         hout = new TEfficiency(*h1,*h2);
-        }
-
-       hout->SetName(name);
-       return hout;
-
+ TH2F* h2D = this->get2DHistogram(hName);
+  if(!h2D) return 0;
+  
+  TH1D *hNum = h2D->ProjectionX("hNum",2,2);
+  TH1D *hDenom = h2D->ProjectionX("hDenom",1,1);
+  hDenom->Add(hNum);
+  /*for (int bin = 1; bin <= hDenom->GetNbinsX(); ++bin) {
+    double binContent = hDenom->GetBinContent(bin);
+    hDenom->SetBinContent(bin, binContent / 2.0);
+}*/
+ return new TEfficiency(*hNum,*hDenom);
 }
 /////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////
@@ -243,20 +271,20 @@ void GMTHistograms::DrawLabels(TCanvas* c){//, const TString& eraLabel) {
     cmsLabel->SetTextFont(42);
     cmsLabel->SetTextSize(0.04);
     cmsLabel->SetTextAlign(11); // Left-align
-    cmsLabel->DrawLatexNDC(0.17, 0.92, "#bf{CMS} #it{Preliminary}");
+    cmsLabel->DrawLatexNDC(0.17, 0.92, "#bf{CMS} #it{Internal}");
 
     TLatex* lumiLabel = new TLatex();
     lumiLabel->SetTextFont(42);
     lumiLabel->SetTextSize(0.04);
     lumiLabel->SetTextAlign(31); // Right-align
-    TString lumiText =  "32fb^{-1}(13.6 TeV)";//32fb^{-1}"DrellYan";// now just era we have lumi info though eraLabel;
+    TString lumiText =  "2024BCD(13.6 TeV)";//32fb^{-1}"DrellYan";//20.1 2023 now just era we have lumi info though eraLabel;
     lumiLabel->DrawLatexNDC(0.94444, 0.92, lumiText);
 
     c->Update();
 }
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh){
+/*void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh){
 
   TCanvas* c = new TCanvas(TString::Format("EffVsPt_%s",sysType.c_str()),
 			   TString::Format("EffVsPt_%s",sysType.c_str()),
@@ -269,33 +297,29 @@ void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh){
   l.SetFillColor(10);
   c->SetGrid(1,1);
 
-  TString hName("");
+  std::string hName("");
   const int *ptCuts = ptCutsOMTF;
  
   for (int icut=0; icut <=3;++icut){
     float ptCut = GMTHistograms::ptBins[ptCuts[icut]];
     hName = "h2D"+sysType+"Pt"+std::to_string((int)ptCut);
     if(doHigh) hName = "h2D"+sysType+"HighPt"+std::to_string((int)ptCut);
-    TH2F* h2D = this->get2DHistogram(hName.Data());
-    if(!h2D) return;
-    TH1D *hNum = h2D->ProjectionX("hNum",2,2);
-    TH1D *hDenom = h2D->ProjectionX("hDenom",1,1);    
-    hDenom->Add(hNum);
-    TEfficiency* hEff =DivideErr(hNum,hDenom,"Pt_Int","B"); //TH1D
+    TEfficiency* hEff =DivideErr(hName); //TH1D
+    if(!hEff) return;
     hEff->SetMarkerStyle(21+icut);
     hEff->SetMarkerColor(color[icut]);
     hEff->SetTitle("; p_{T}^{reco} (GeV/c);L1 Muon efficiency");
     const TH1 *numeratorHist = hEff->GetPassedHistogram();
     const TH1 *denominatorHist = hEff->GetTotalHistogram();
     if(icut==2){
-      double numeratorBinContent = numeratorHist->GetBinContent(21); 
-      double denominatorBinContent = denominatorHist->GetBinContent(21);
+      double numeratorBinContent = numeratorHist->GetBinContent(19); 
+      double denominatorBinContent = denominatorHist->GetBinContent(20);
       double efficiency_out = numeratorBinContent / denominatorBinContent;
-      if (!std::isnan(efficiency_out))std::cout<< "The efficiency at 22 GeV Threshold : "<< efficiency_out<<"\n";
+      if (!std::isnan(efficiency_out))std::cout<< "The efficiency at 20 GeV Threshold : "<< efficiency_out<<"\n";
     }
      if(icut==3){
-      double numeratorBinContent = numeratorHist->GetBinContent(21); 
-      double denominatorBinContent = denominatorHist->GetBinContent(21);
+      double numeratorBinContent =0.5*(numeratorHist->GetBinContent(20)+ numeratorHist->GetBinContent(21)); 
+      double denominatorBinContent = 0.5*(denominatorHist->GetBinContent(21) + denominatorHist->GetBinContent(20));
       double efficiency_out = numeratorBinContent / denominatorBinContent;
       if (!std::isnan(efficiency_out))std::cout<< "The efficiency at 25 GeV Threshold : "<< efficiency_out<<"\n";
 
@@ -304,11 +328,14 @@ void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh){
     else hEff->Draw("same");
     TString nameCut = TString::Format("%d", (int)GMTHistograms::ptBins[ptCuts[icut]])+" GeV/c";
     if (icut==0) nameCut = "no p_{T} cut";
+    if(hName.find("OMTF")!=std::string::npos)l.SetHeader("OMTF","C");
+    if(hName.find("uGMT")!=std::string::npos)l.SetHeader("uGMT","C");
     l.AddEntry(hEff,nameCut.Data());
     c->Update();
     auto graph = hEff->GetPaintedGraph();
     graph->GetXaxis()->SetRangeUser(0.0,60.0);
     graph->GetYaxis()->SetRangeUser(0.0,1.1);
+    c->SetLogx();
     c->Update();
     DrawLabels(c); 
     c->Update();
@@ -321,9 +348,82 @@ void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh){
              }
   else{  
         c->Print(TString::Format("fig_png/PanelVsHighPt_%s.png",sysType.c_str()).Data());
-	c->Print(TString::Format("fig_png/PanelVsHighPt_%s.pdf",sysType.c_str()).Data());
+	      c->Print(TString::Format("fig_png/PanelVsHighPt_%s.pdf",sysType.c_str()).Data());
       }
+}*/
+///////////////////////////////////////////////////////
+void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh, bool useUnconstrainedPt ) {
+  TCanvas* c = new TCanvas(TString::Format("EffVsPt_%s", sysType.c_str()),
+                           TString::Format("EffVsPt_%s", sysType.c_str()),
+                           600, 600);
+
+  TLegend l(0.6513158, 0.1673729, 0.8903509, 0.470339, NULL, "brNDC");
+  l.SetTextSize(0.05);
+  l.SetFillStyle(4000);
+  l.SetBorderSize(0);
+  l.SetFillColor(10);
+  c->SetGrid(1, 1);
+
+  std::string hName("");
+  const int *ptCuts = ptCutsOMTF;
+
+  for (int icut = 0; icut <= 3; ++icut) {
+    float ptCut = GMTHistograms::ptBins[ptCuts[icut]];
+    if (useUnconstrainedPt) {
+      hName = "h2D" + sysType + "PtUC" + std::to_string((int)ptCut);
+    } else {
+      hName = "h2D" + sysType + "Pt" + std::to_string((int)ptCut);
+    }
+    if (doHigh) hName = "h2D" + sysType + "HighPt" + std::to_string((int)ptCut);
+    TEfficiency* hEff = DivideErr(hName); // TH1D
+    if (!hEff) return;
+    hEff->SetMarkerStyle(21 + icut);
+    hEff->SetMarkerColor(color[icut]);
+    hEff->SetTitle("; p_{T}^{reco} (GeV/c);L1 Muon efficiency");
+    const TH1* numeratorHist = hEff->GetPassedHistogram();
+    const TH1* denominatorHist = hEff->GetTotalHistogram();
+    if (icut == 2) {
+      double numeratorBinContent = numeratorHist->GetBinContent(19);
+      double denominatorBinContent = denominatorHist->GetBinContent(20);
+      double efficiency_out = numeratorBinContent / denominatorBinContent;
+      if (!std::isnan(efficiency_out)) std::cout << "The efficiency at 20 GeV Threshold : " << efficiency_out << "\n";
+    }
+    if (icut == 3) {
+      double numeratorBinContent = 0.5 * (numeratorHist->GetBinContent(20) + numeratorHist->GetBinContent(21));
+      double denominatorBinContent = 0.5 * (denominatorHist->GetBinContent(21) + denominatorHist->GetBinContent(20));
+      double efficiency_out = numeratorBinContent / denominatorBinContent;
+      if (!std::isnan(efficiency_out)) std::cout << "The efficiency at 25 GeV Threshold : " << efficiency_out << "\n";
+    }
+    if (icut == 0) hEff->Draw();
+    else hEff->Draw("same");
+    TString nameCut = TString::Format("%d", (int)GMTHistograms::ptBins[ptCuts[icut]]) + " GeV/c";
+    if (icut == 0) nameCut = "no p_{T} cut";
+    if (hName.find("OMTF") != std::string::npos) l.SetHeader("OMTF", "C");
+    if (hName.find("uGMT") != std::string::npos) l.SetHeader("uGMT", "C");
+    l.AddEntry(hEff, nameCut.Data());
+    c->Update();
+    auto graph = hEff->GetPaintedGraph();
+    graph->GetXaxis()->SetRangeUser(0.0, 60.0);
+    graph->GetYaxis()->SetRangeUser(0.0, 1.1);
+    c->SetLogx();
+    c->Update();
+    DrawLabels(c);
+    c->Update();
+  }
+  l.DrawClone();
+  
+  std::string filenameSuffix = useUnconstrainedPt ? "UC" : "";
+
+  if (!doHigh) {
+    c->Print(TString::Format("fig_png/PanelVsPt_%s%s.png", sysType.c_str(), filenameSuffix.c_str()).Data());
+    c->Print(TString::Format("fig_png/PanelVsPt_%s%s.pdf", sysType.c_str(), filenameSuffix.c_str()).Data());
+  } else {
+    c->Print(TString::Format("fig_png/PanelVsHighPt_%s%s.png", sysType.c_str(), filenameSuffix.c_str()).Data());
+    c->Print(TString::Format("fig_png/PanelVsHighPt_%s%s.pdf", sysType.c_str(), filenameSuffix.c_str()).Data());
+  }
+
 }
+
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 void GMTHistograms::plotVar(const std::string & sysType,
@@ -370,22 +470,18 @@ void GMTHistograms::plotEffVsVar(const std::string & sysType,
   l.SetFillColor(10);
   c->SetGrid(1,1);
 
-  TString hName("");
+  std::string hName("");
   const int *ptCuts = ptCutsOMTF;
  
   for (int icut=0; icut<=3;++icut){
     float ptCut = GMTHistograms::ptBins[ptCuts[icut]];
     hName = "h2D"+sysType+varName+std::to_string((int)ptCut);
-    TH2F* h2D = this->get2DHistogram(hName.Data());
-    if(!h2D) return;
-    TH1D *hNum = h2D->ProjectionX("hNum",2,2);
-    TH1D *hDenom = h2D->ProjectionX("hDenom",1,1);
-    hDenom->Add(hNum);
-    TEfficiency* hEff =DivideErr(hNum,hDenom,"Pt_Int","B");
+  
+    TEfficiency* hEff =DivideErr(hName);
     hEff->SetMarkerStyle(21+icut);
     hEff->SetMarkerColor(color[icut]); // Please fix the title accriding to histograms 
     if(varName.find("Phi")!=std::string::npos)hEff->SetTitle(";|#phi^{#mu}| (rad); L1 Muon Efficiency");
-    if(varName.find("Eta")!=std::string::npos)hEff->SetTitle(";|#eta^{#mu}| (a.u.); L1 Muon Efficiency");
+    if(varName.find("Eta")!=std::string::npos)hEff->SetTitle(";|#eta^{#mu}| ; L1 Muon Efficiency");
     if (icut==0)hEff->Draw();
     else hEff->Draw("same");
     TString nameCut = TString::Format("%d", (int)GMTHistograms::ptBins[ptCuts[icut]])+" GeV/c";
@@ -393,7 +489,7 @@ void GMTHistograms::plotEffVsVar(const std::string & sysType,
     l.AddEntry(hEff,nameCut.Data());
     c->Update();
     auto graph = hEff->GetPaintedGraph();
-    graph->GetXaxis()->SetRangeUser(0.0,100.0);
+    graph->GetXaxis()->SetRangeUser(0.0,60.0);
     graph->GetYaxis()->SetRangeUser(0.0,1.0);
     c->Update();
 
@@ -429,10 +525,12 @@ void GMTHistograms::plotEffVsEta(const std::string & sysType){
     TH2F* h2D = this->get2DHistogram(hName);
     if(!h2D) return;
     TH1D *hNum = h2D->ProjectionX("hNum",2,2);
+    if(!hNum) return;
     TH1D *hDenom = h2D->ProjectionX("hDenom",1,1);
     if(iType==2) hNum->Scale(50.0);
+    
     hDenom->Add(hNum);
-    TEfficiency* hEff =DivideErr(hNum,hDenom,"Pt_Int","B");
+    TEfficiency* hEff = new TEfficiency(*hNum,*hDenom);
     hEff->SetMarkerStyle(21+iCut);
     hEff->SetMarkerColor(color[iCut]);
     hEff->SetTitle(";#eta^{reco} (a.u.); L1 Muon-Efficiency");
@@ -443,7 +541,6 @@ void GMTHistograms::plotEffVsEta(const std::string & sysType){
     if (iType==1) nameCut = "p_{T}^{cut}<p_{T}^{#mu}<#dot p_{T}^{cut} + 5 GeV/c";
     if (iType==2) nameCut = "p_{T}^{#mu}<10 GeV/c (#epsilon #times 50)";
     l.AddEntry(hEff,nameCut.c_str());
-
     c->Update();
     auto graph = hEff->GetPaintedGraph();
     graph->GetXaxis()->SetRangeUser(0.0,100.0);
@@ -485,32 +582,22 @@ void GMTHistograms::plotGMTVsOther(int iPtCut,
   c->SetGrid(1,1);
 
   std::string hName = "h2D"+sysType+"Pt"+std::to_string((int)ptCut);
-  TH2F* h2D = get2DHistogram(hName);
-  if(!h2D) return;
-  TH1D *hNum = h2D->ProjectionX("hNum",2,2);
-  TH1D *hDenom = h2D->ProjectionX("hDenom",1,1);
-  hDenom->Add(hNum);
-  TEfficiency* hEffOther =DivideErr(hNum,hDenom,"hEffOther","B");
+  TEfficiency* hEffOther =DivideErr(hName);
   hEffOther->SetMarkerStyle(23);
   hEffOther->SetMarkerColor(2);
   
 
 
-  hName = "h2DuGMTPt"+std::to_string((int)ptCut);
-  h2D = get2DHistogram(hName);
-  hNum = h2D->ProjectionX("hNum",2,2);
-  hDenom = h2D->ProjectionX("hDenom",1,1);    
-  hDenom->Add(hNum);
-
-  TEfficiency* hEffGMT =DivideErr(hNum,hDenom,"hEffGMTTmp","B");
-  hEffGMT->SetMarkerStyle(8);
-  hEffGMT->SetMarkerColor(1);
-  hEffGMT->SetTitle(";p_{T}^{Reco} (GeV/c);L1 muon efficiency");
-  hEffGMT->Draw(); 
+  hName = "h2DOMTFPt"+std::to_string((int)ptCut);
+  TEfficiency* hEffOMTF =DivideErr(hName);
+  hEffOMTF->SetMarkerStyle(8);
+  hEffOMTF->SetMarkerColor(1);
+  hEffOMTF->SetTitle(";p_{T}^{Reco} (GeV/c);L1 muon efficiency");
+  hEffOMTF->Draw(); 
   hEffOther->Draw("same");
 
   c->Update();
-  auto graph = hEffGMT->GetPaintedGraph();
+  auto graph = hEffOMTF->GetPaintedGraph();
   graph->GetXaxis()->SetRangeUser(0.0,100.0);
   graph->GetYaxis()->SetRangeUser(0.0,1.0);
   c->Update();
@@ -528,7 +615,7 @@ void GMTHistograms::plotGMTVsOther(int iPtCut,
   l.AddEntry((TObject*)0, "", "");
   l.AddEntry(hEffOther, sysType.c_str());
   l.AddEntry((TObject*)0, "", "");
-  l.AddEntry(hEffGMT, "Phase1GMT");
+  l.AddEntry(hEffOMTF, "OMTF");
   l.DrawClone();
 
   TLine aLine(0,0,0,0);
@@ -536,13 +623,13 @@ void GMTHistograms::plotGMTVsOther(int iPtCut,
   aLine.SetLineWidth(3);
   aLine.DrawLine(ptCut,0,ptCut,1.04);
   DrawLabels(c);
-  c->Print(TString::Format("fig_eps/uGMTVs%s_%d.eps",sysType.c_str(),(int)ptCut).Data());
-  c->Print(TString::Format("fig_png/uGMTVs%s_%d.png",sysType.c_str(),(int)ptCut).Data());
+  c->Print(TString::Format("fig_eps/OMTFVs%s_%d.eps",sysType.c_str(),(int)ptCut).Data());
+  c->Print(TString::Format("fig_png/OMTFVs%s_%d.png",sysType.c_str(),(int)ptCut).Data());
 
   c->SetLogy();
-  c->Print(TString::Format("fig_eps/uGMTVs%s_%d_log.eps",sysType.c_str(),(int)ptCut).Data());
-  c->Print(TString::Format("fig_png/uGMTVs%s_%d_log.png",sysType.c_str(),(int)ptCut).Data());
-  c->Print(TString::Format("fig_png/uGMTVs%s_%d_log.pdf",sysType.c_str(),(int)ptCut).Data());
+  c->Print(TString::Format("fig_eps/OMTFs%s_%d_log.eps",sysType.c_str(),(int)ptCut).Data());
+  c->Print(TString::Format("fig_png/OMTFs%s_%d_log.png",sysType.c_str(),(int)ptCut).Data());
+  c->Print(TString::Format("fig_png/OMTFVs%s_%d_log.pdf",sysType.c_str(),(int)ptCut).Data());
 
 }
 ////////////////////////////////////////////////////////////////
@@ -670,19 +757,7 @@ void GMTHistograms::plotRate(std::string type){
   c->Print(("fig_eps/Rate"+type+".eps").c_str());
   c->Print(("fig_png/Rate"+type+".png").c_str());
 }
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-/*float  GMTHistograms::getEfficiency(TH2F *h2D, float ptCut){
 
-  TH1D *hNum = h2D->ProjectionX("hNum",2,2);
-  TH1D *hDenom = h2D->ProjectionX("hDenom",1,1);
-  hDenom->Add(hNum);
-  TEfficiency* hEffTmp =DivideErr(hNum,hDenom,"hEffTmp","B");
-  
-  float range = hEffTmp->GetBinLowEdge(binHigh+1) - hEffTmp->GetBinLowEdge(binLow);
-  float eff = hEffTmp->Integral(binLow,binHigh,"width")/range;
-  return eff;
-}*/
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 TEfficiency * GMTHistograms::getEfficiencyHisto(const std::string & hName){
@@ -693,8 +768,7 @@ TEfficiency * GMTHistograms::getEfficiencyHisto(const std::string & hName){
   TH1D *hNum = h2D->ProjectionX("hNum",2,2);
   TH1D *hDenom = h2D->ProjectionX("hDenom",1,1);  
   hDenom->Add(hNum);
-  TEfficiency* hEffTmp =DivideErr(hNum,hDenom,"hEffTmp","B");
-  return hEffTmp;
+  return new TEfficiency(*hNum,*hDenom);
 }
 ////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
@@ -728,74 +802,6 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     DrawLabels(c);
     c->Print(TString::Format("fig_png/%s.png",hName.c_str()).Data());
     c->Print(TString::Format("fig_png/%s.pdf",hName.c_str()).Data());
-    
-
-
-
-
-    TCanvas* ratecanvas = new TCanvas("ratecanvas", "ratecanvas", 600, 600);
-    ratecanvas->SetLogy(1);
-    ratecanvas->SetGrid(1,1);
-    TH1D* hdivideI = nullptr;
-    if (histName2D.find("uGMTRateTot") != std::string::npos){
-    auto uGMTDen = h2D->ProjectionX("X");
-    auto uGMTNum = h2D->ProjectionY("Y");
-    hdivideI = (TH1D*)uGMTNum->Clone("hdivideI");
-    hdivideI->Sumw2();
-    double lhcFrequency = 11245.6;  //Hz
-    double collidingBunches = 2544; 
-    double aFactor = lhcFrequency * collidingBunches; 
-    hdivideI->Scale(aFactor);
-    hdivideI->Divide(uGMTDen);
-    hdivideI->Draw("colz");
-
-    //ratecanvas->Divide(1,2);
-    //ratecanvas->cd(1);uGMTDen->Draw(); ratecanvas->cd(2);uGMTNum->Draw();
-    }
-    ratecanvas->Print("fig_png/LevelOne_TwowardRateDPlot.pdf");
-    
-      
-/*
-    TLegend l(0.2,0.65,0.44,0.86,NULL,"brNDC");
-    l.SetTextSize(0.05);
-    l.SetFillStyle(4000);
-    l.SetBorderSize(0);
-    l.SetFillColor(10);
-    c->SetLogx(1);
-    c->SetGrid(1,1);
-     
-     TH1D* hdivideI = nullptr;
-     TH1D* hdivideII = nullptr;
-
-     if (histName2D.find("uGMTRateTot") != std::string::npos) {
-      auto uGMTDen = h2D->ProjectionX("X");
-      auto uGMTNum = h2D->ProjectionY("Y");
-
-      hdivideI = (TH1D*)uGMTNum->Clone("hdivideI");
-      hdivideI->Sumw2();
-      hdivideI->Divide(uGMTDen);
-      hdivideI->Draw("colz");
-   }
-
-    if (histName2D.find("OMTFRateTot") != std::string::npos) {
-      auto OMTFDen = h2D->ProjectionX("X");
-      auto OMTFNum = h2D->ProjectionY("Y");
-
-      hdivideII = (TH1D*)OMTFNum->Clone("hdivideII");
-      hdivideII->Sumw2();
-      hdivideII->Divide(OMTFDen);
-      hdivideII->Draw("colz same");
-    }
-
-     l.AddEntry(hdivideI,"uGMT");
-     l.AddEntry(hdivideII,"OMTF");
-     l.Draw();
-
-     DrawLabels(ratecanvas);
-     ratecanvas->Print("fig_eps/LevelOne_Rate.eps");
-     ratecanvas->Print("fig_png/LevelOne_Rate.png");
-     ratecanvas->Print("fig_png/LevelOne_Rate.pdf");
-*/
   }
   if(h1D) {
     h1D->SetDirectory(myDirCopy);
@@ -806,9 +812,9 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     const std::string  histName = hName.c_str();
     std::cout<< " the name of the hist string : "<< histName << "\n";
     if(histName.find("PtTag")!=std::string::npos)h1D->SetXTitle("Tag p_{T}^{#mu RECO} (GeV/c)");
-    if(histName.find("AbsEtaTag")!=std::string::npos)h1D->SetXTitle("Tag |#eta^{#mu RECO}| (a.u.)");
+    if(histName.find("AbsEtaTag")!=std::string::npos)h1D->SetXTitle("Tag |#eta^{#mu RECO}|");
     if(histName.find("PtProbe")!=std::string::npos)h1D->SetXTitle("Probe p_{T}^{#mu RECO} (GeV/c)");
-    if(histName.find("AbsEtaProbe")!=std::string::npos)h1D->SetXTitle("Probe |#eta^{#mu RECO}| (a.u.)");
+    if(histName.find("AbsEtaProbe")!=std::string::npos)h1D->SetXTitle("Probe |#eta^{#mu RECO}|");
     h1D->SetYTitle("Events");
     h1D->GetYaxis()->SetTitleOffset(1.4);
     h1D->SetStats(kFALSE);
@@ -882,16 +888,6 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     leg->AddEntry(zmassf->findObject("combinatorial"),"Combinatorial","l");
     //leg->AddEntry(zmassf->findObject("lowerSB"),"lowerSB","l");
     leg->SetBorderSize(0);
-    TPad *pad1 = new TPad("pad1","pad1",0,0.3,1,0.97);
-    TPad *pad2 = new TPad("pad2","pad2",0.0,0.1,1,0.27);
-    pad1->SetBottomMargin(0.05);
-    pad1->SetBorderMode(0);
-    pad2->SetTopMargin(0.08);  
-    pad2->SetBottomMargin(0.45);
-    pad2->SetBorderMode(0);
-    pad1->Draw();
-    pad2->Draw();
-    pad1->cd();
     gStyle->SetOptTitle(0);
     cDimuon->SetFillColor(0);
     cDimuon->SetBorderSize(2);
@@ -903,11 +899,6 @@ void GMTHistograms::plotSingleHistogram(std::string hName){
     zmassf->SetTitle("");
     zmassf->Draw();
     leg->Draw("same");
-    pad2->cd();
-    pullframezmass->SetStats(0);
-    pullframezmass->SetLabelSize(0.2, "X");
-    pullframezmass->SetLabelSize(0.1, "Y");
-    pullframezmass->Draw();
     cDimuon->cd();
     DrawLabels(cDimuon);   
     cDimuon->Print("fig_png/diMuonMassTagandProbe.png", "png");

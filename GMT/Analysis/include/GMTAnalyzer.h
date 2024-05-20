@@ -55,6 +55,7 @@ class GMTAnalyzer:public Analyzer{
   std::vector<TVector3> aL1Object3VectorCollection;
   void setHistos(GMTHistograms *histos) { myHistos_ = histos;};
   void parseProcessName(); 
+  bool lowPtVeto = false;
 private:
   
   void fillHistosForObjectVectors( const TVector3 & instantiatedVector);  
@@ -70,6 +71,8 @@ private:
   bool passQuality(const L1Obj & aL1Cand,
 		              const std::string & sysType,
 		              const std::string & selType = "");
+  double calibratedPt(const std::string & sysType, const L1Obj & aCand);
+  bool isPtGeq(const double &pt1, const double &pt2);
   double zResonance(const MuonObj  aRecoMuon);
   double detaTagAndProbe(const MuonObj  aRecoMuon); 
   std::string inputType;

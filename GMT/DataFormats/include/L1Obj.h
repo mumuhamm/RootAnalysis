@@ -10,6 +10,8 @@ namespace {
     while (phi < 0.) phi += 2*M_PI;
     return phi;
   }
+
+  
 }
 
 class L1Obj : public TObject {
@@ -19,19 +21,24 @@ public:
   enum TYPE { NONE, RPCb, RPCf, DT, CSC, GMT, RPCb_emu, RPCf_emu, GMT_emu, OMTF, OMTF_emu, BMTF, EMTF, uGMT, uGMT_emu };
 
   int pt, eta, phi;
+  double ptUnconstrained;
+  double z0, d0;
   int disc;
   Float_t nanoPhi;
   int   bx, q, hits, charge, refLayer;
-  TYPE  type;
+  TYPE  type{NONE};
   int   iProcessor, position;
 
   L1Obj();
 
   bool isValid() const { return type!=NONE && pt>0;}
-
   double ptValue() const { return (pt-1.)/2.; }
+  double ptUnconstrainedValue() const { return (ptUnconstrained-1.); }
   double etaValue() const { return eta/240.*2.61; }
+  double z0Value() const { return z0; }
+  double d0Value() const { return d0; }
   Float_t nanoPhiValue() const{ return nanoPhi;}
+  
   double phiValue() const {
     if (type==OMTF || type==OMTF_emu)// || type==EMTF) 
     return modulo2PI( ( (15.+iProcessor*60.)/360. + phi/576. ) *2*M_PI) ;  
@@ -41,7 +48,7 @@ public:
   }
   int chargeValue() const { return pow(-1,charge); }
 
-  ClassDef(L1Obj,4)
+  ClassDef(L1Obj,6)
 };
 
 

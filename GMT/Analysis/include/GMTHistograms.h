@@ -20,13 +20,14 @@ public:
   virtual void finalizeHistograms();
 
   virtual std::string getTemplateName(const std::string& name);
-
+  static const std::vector<std::string> algos;
   static const int color[6];
   static const int ptCutsGmt[4];
   static const int ptCutsOMTF[4];
   static const int ptCutsOMTFHigh[4];
   static const unsigned int nPtBins;
-  static const float ptBins[36];
+  static const std::vector<double> ptBins;
+  static const std::vector<double> effBins;
     
 private:
 
@@ -35,11 +36,10 @@ private:
 
   TH1* Integrate(TH1 * histoD);
 
-  TEfficiency * DivideErr(TH1D * h1, TH1D * h2,
-                   const char * name="DivideErr",
-                   const char * optErr ="");
+  TEfficiency * DivideErr(const std::string & hName);
   void DrawLabels(TCanvas* c);//, const TString& eraLabel);
-  void plotEffPanel(const std::string & sysType, bool doHigh=false);
+  //void plotEffPanel(const std::string & sysType, bool doHigh=false);
+  void plotEffPanel(const std::string & sysType, bool doHigh = false, bool useUnconstrainedPt = false);
 
   void plotEffVsEta(const std::string & sysType);
 
@@ -60,7 +60,6 @@ private:
   void plotRate(std::string type);
   void plotEffVsRate(int iPtCut);
   
-  float getEfficiency(TH2F *h2D, float ptCut);
 
   TEfficiency *getEfficiencyHisto(const std::string & hName);
  

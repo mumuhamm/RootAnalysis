@@ -30,6 +30,7 @@ void EventProxyOMTFNANOAOD::init(std::vector<std::string> const& iFileNames){
   EventProxyBase::init(iFileNames);
   fChain->SetBranchStatus("*",1);
   fChain->SetMakeClass(0);
+  
 
    TBranch        *b_nL1Mu;   	
    TBranch        *b_L1Mu_eta;
@@ -91,7 +92,7 @@ void  EventProxyOMTFNANOAOD::fillnanoL1ObjColl() {
               //myL1ObjColl->getL1Objs().clear();
              for( Int_t i =0; i< nL1Mu; ++i){
               aL1Obj.eta  = L1Mu_eta[i];
-	      aL1Obj.nanoPhi  = L1Mu_phi[i];
+	            aL1Obj.nanoPhi  = L1Mu_phi[i];
               aL1Obj.pt   = L1Mu_pt[i];
               aL1Obj.charge  = L1Mu_hwCharge[i];
               aL1Obj.bx        = L1Mu_bx[i];

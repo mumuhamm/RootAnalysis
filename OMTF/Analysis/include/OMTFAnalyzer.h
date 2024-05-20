@@ -66,7 +66,9 @@ class OMTFAnalyzer:public Analyzer{
   const EventObj  *myEventId;
   const GenObjColl *myGenObjColl;
   const L1ObjColl  *myL1ObjColl;
+   const MuonObjColl  *myMuonObjColl;
   GenObj myGenObj;
+  MuonObj myMuonObj;
   std::vector<OMTFHit> myHits;
 
   TH3F *hGoldenPatterns;
