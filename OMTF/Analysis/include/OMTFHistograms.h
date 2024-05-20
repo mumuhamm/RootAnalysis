@@ -26,6 +26,9 @@ public:
   static const std::vector<double> color;
   static const std::vector<double> iPtCuts;
   static const std::vector<double> ptBins;
+  float LHCFrequency = 11245.6;  // Assign the actual LHC frequency
+  float collidingBunches = 2544;  // Assign the actual number of colliding bunches
+  float zeroBiasRate = (LHCFrequency * collidingBunches)/1000;
   
 private:
 

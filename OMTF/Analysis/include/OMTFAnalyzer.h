@@ -34,6 +34,7 @@ class OMTFAnalyzer:public Analyzer{
 
   void setHistos(OMTFHistograms *histos) { myHistos_ = histos;};
 
+
  private:
 
   void fillHistosForGenMuon();
@@ -63,6 +64,7 @@ class OMTFAnalyzer:public Analyzer{
   const L1ObjColl  *myL1ObjColl;
   GenObj myGenObj;
   TVector3 genMuMom;
+  
 };
 
 #endif
