@@ -42,7 +42,7 @@ int nPtBins = 32;
 const std::vector<std::string> GMTHistograms::algos = {"OMTFC","OMTFUC","OMTFDisp", "GMT","BMTF","EMTF"};
 const std::vector<double> GMTHistograms::ptBins =  {0., 0.1, 
                    1.5, 2., 2.5, 3., 3.5, 4., 4.5, 5., 6., 7., 8., 
-                   10., 12., 14., 16., 18., 20., 25., 30., 35., 40., 45., 
+                   10., 12., 14., 16., 18., 20., 22., 30., 35., 40., 45., 
                    50., 60., 70., 80., 90., 100., 120., 140., 160.};
 const std::vector<double> GMTHistograms::effBins = {-0.5,1.0,1.5};
 
@@ -62,8 +62,8 @@ const std::vector<double> GMTHistograms::effBins = {-0.5,1.0,1.5};
 const int GMTHistograms::color[6] = {kBlack, kBlue, kRed, kMagenta, kTeal, kGreen};
 //Single mu
 //const int GMTHistograms::ptCutsOMTF[4] =   {0, 14, 19, 20};
-const int GMTHistograms::ptCutsOMTF[4] =   {0, 9, 14, 18}; //My bin 
-//const int GMTHistograms::ptCutsOMTF[4] =   {0, 13, 16, 19}; //Marcin Bin 
+//const int GMTHistograms::ptCutsOMTF[4] =   {0, 9, 14, 18}; //My bin 
+const int GMTHistograms::ptCutsOMTF[4] =   {0, 13, 16, 19}; //Marcin Bin 
 
 
 /////////////////////////////////////////////////////////
@@ -151,8 +151,8 @@ void GMTHistograms::defineHistograms(){
  add2DHistogram("h2DRecoMuonPtVsL1PtTemplate", "", 100, 0, 120, 100, 0, 120, file_);
 
 
- add2DHistogram("h2DEtaTemplate","",60,0,3,2,-0.5,1.5,file_);
- add2DHistogram("h2DPhiTemplate","",4*32,0,3.2,2,-0.5,1.5,file_);
+ add2DHistogram("h2DEtaTemplate","",60,-2.5,2.5,2,-0.5,1.5,file_);
+ add2DHistogram("h2DPhiTemplate","",4*32,-3.2,3.2,2,-0.5,1.5,file_);
  add2DHistogram("h2DQualityTemplate","",201,-0.5,200.5,2,-0.5,1.5,file_);
 
  //Rate histos
@@ -211,7 +211,7 @@ void GMTHistograms::finalizeHistograms(){
   //Turn on curves for many pT thresholds.
   ///Lines for reference - Phase2 uGMT, and other algorithm shown
   for(int iPtCode=1;iPtCode<=30;++iPtCode){
-      plotGMTVsOther(iPtCode,"uGMT");
+      //plotGMTVsOther(iPtCode,"uGMT");
       plotGMTVsOther(iPtCode,"OMTF");
   }
 
@@ -258,11 +258,17 @@ TEfficiency * GMTHistograms::DivideErr(const std::string & hName){
   TH1D *hNum = h2D->ProjectionX("hNum",2,2);
   TH1D *hDenom = h2D->ProjectionX("hDenom",1,1);
   hDenom->Add(hNum);
+  TEfficiency *hOut =0; 
   /*for (int bin = 1; bin <= hDenom->GetNbinsX(); ++bin) {
     double binContent = hDenom->GetBinContent(bin);
     hDenom->SetBinContent(bin, binContent / 2.0);
 }*/
- return new TEfficiency(*hNum,*hDenom);
+ if(TEfficiency::CheckConsistency(*hNum,*hDenom)){
+ hOut =  new TEfficiency(*hNum,*hDenom);
+ }
+ const char* name = hName.c_str();
+ hOut->SetName(name);
+ return hOut;
 }
 /////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////
@@ -277,7 +283,7 @@ void GMTHistograms::DrawLabels(TCanvas* c){//, const TString& eraLabel) {
     lumiLabel->SetTextFont(42);
     lumiLabel->SetTextSize(0.04);
     lumiLabel->SetTextAlign(31); // Right-align
-    TString lumiText =  "2024BCD(13.6 TeV)";//32fb^{-1}"DrellYan";//20.1 2023 now just era we have lumi info though eraLabel;
+    TString lumiText =  "2024(13.6 TeV)";//32fb^{-1}"DrellYan";//20.1 2023 now just era we have lumi info though eraLabel;
     lumiLabel->DrawLatexNDC(0.94444, 0.92, lumiText);
 
     c->Update();
@@ -333,7 +339,7 @@ void GMTHistograms::DrawLabels(TCanvas* c){//, const TString& eraLabel) {
     l.AddEntry(hEff,nameCut.Data());
     c->Update();
     auto graph = hEff->GetPaintedGraph();
-    graph->GetXaxis()->SetRangeUser(0.0,60.0);
+    graph->GetXaxis()->SetRangeUser(0.0,120.0);
     graph->GetYaxis()->SetRangeUser(0.0,1.1);
     c->SetLogx();
     c->Update();
@@ -345,10 +351,12 @@ void GMTHistograms::DrawLabels(TCanvas* c){//, const TString& eraLabel) {
   if(!doHigh){ 
                c->Print(TString::Format("fig_png/PanelVsPt_%s.png",sysType.c_str()).Data());
                c->Print(TString::Format("fig_png/PanelVsPt_%s.pdf",sysType.c_str()).Data());
+               c->Print(TString::Format("fig_png/PanelVsPt_%s.root",sysType.c_str()).Data());
              }
   else{  
-        c->Print(TString::Format("fig_png/PanelVsHighPt_%s.png",sysType.c_str()).Data());
+              c->Print(TString::Format("fig_png/PanelVsHighPt_%s.png",sysType.c_str()).Data());
 	      c->Print(TString::Format("fig_png/PanelVsHighPt_%s.pdf",sysType.c_str()).Data());
+	      c->Print(TString::Format("fig_png/PanelVsHighPt_%s.root",sysType.c_str()).Data());
       }
 }*/
 ///////////////////////////////////////////////////////
@@ -403,7 +411,7 @@ void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh, bool 
     l.AddEntry(hEff, nameCut.Data());
     c->Update();
     auto graph = hEff->GetPaintedGraph();
-    graph->GetXaxis()->SetRangeUser(0.0, 60.0);
+    graph->GetXaxis()->SetRangeUser(0.0, 120.0);
     graph->GetYaxis()->SetRangeUser(0.0, 1.1);
     c->SetLogx();
     c->Update();
@@ -417,9 +425,11 @@ void GMTHistograms::plotEffPanel(const std::string & sysType, bool doHigh, bool 
   if (!doHigh) {
     c->Print(TString::Format("fig_png/PanelVsPt_%s%s.png", sysType.c_str(), filenameSuffix.c_str()).Data());
     c->Print(TString::Format("fig_png/PanelVsPt_%s%s.pdf", sysType.c_str(), filenameSuffix.c_str()).Data());
+    c->Print(TString::Format("fig_png/PanelVsPt_%s%s.root", sysType.c_str(), filenameSuffix.c_str()).Data());
   } else {
     c->Print(TString::Format("fig_png/PanelVsHighPt_%s%s.png", sysType.c_str(), filenameSuffix.c_str()).Data());
     c->Print(TString::Format("fig_png/PanelVsHighPt_%s%s.pdf", sysType.c_str(), filenameSuffix.c_str()).Data());
+    c->Print(TString::Format("fig_png/PanelVsHighPt_%s%s.root", sysType.c_str(), filenameSuffix.c_str()).Data());
   }
 
 }
@@ -489,8 +499,8 @@ void GMTHistograms::plotEffVsVar(const std::string & sysType,
     l.AddEntry(hEff,nameCut.Data());
     c->Update();
     auto graph = hEff->GetPaintedGraph();
-    graph->GetXaxis()->SetRangeUser(0.0,60.0);
-    graph->GetYaxis()->SetRangeUser(0.0,1.0);
+    graph->GetXaxis()->SetRangeUser(-3.2, 3.2);
+    graph->GetYaxis()->SetRangeUser(0.0,1.1);
     c->Update();
 
   }
@@ -543,8 +553,8 @@ void GMTHistograms::plotEffVsEta(const std::string & sysType){
     l.AddEntry(hEff,nameCut.c_str());
     c->Update();
     auto graph = hEff->GetPaintedGraph();
-    graph->GetXaxis()->SetRangeUser(0.0,100.0);
-    graph->GetYaxis()->SetRangeUser(0.0,1.0);
+    graph->GetXaxis()->SetRangeUser(-2.5,2.5);
+    graph->GetYaxis()->SetRangeUser(0.0,1.1);
     c->Update();
   }
   ///OMTF eta range used for generating patterns.

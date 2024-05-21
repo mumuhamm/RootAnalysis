@@ -89,7 +89,7 @@ bool GMTAnalyzer::passQuality(const L1Obj & aL1Cand,
    else if (sysType.find("BMTF")!=std::string::npos) qualitySelection &= aL1Cand.type==L1Obj::BMTF;
    else if (sysType.find("EMTF")!=std::string::npos) qualitySelection &= aL1Cand.type==L1Obj::EMTF;
    else if(sysType.find("OMTF")!=std::string::npos) qualitySelection &= aL1Cand.type==L1Obj::OMTF;
-   else if(sysType.find("OMTFUC")!=std::string::npos) qualitySelection &= aL1Cand.type==L1Obj::OMTF && aL1Cand.ptUnconstrainedValue(); 
+   //else if(sysType.find("OMTFUC")!=std::string::npos) qualitySelection &= aL1Cand.type==L1Obj::OMTF && aL1Cand.ptUnconstrainedValue(); 
    return qualitySelection;
 
 }
@@ -104,12 +104,12 @@ void GMTAnalyzer::fillTurnOnCurve( const TVector3 & instantiatedVector,
   int ptCut = GMTHistograms::ptBins[iPtCut];
   aRecoMuon3Vector = instantiatedVector;
   
-  std::string hName = "h2DGMT"+selType;
+  std::string hName = ""+selType;
   if(sysType=="OMTF")hName = "h2DOMTF"+selType;
   if(sysType=="uGMT")hName = "h2DuGMT"+selType;
   if(sysType=="EMTF")hName = "h2DEMTF"+selType;
   if(sysType=="BMTF")hName = "h2DBMTF"+selType;
-  if(sysType=="OMTFUC")hName = "h2DOMTFUC"+selType;
+  //if(sysType=="OMTFUC")hName = "h2DOMTFUC"+selType;
 
   ///Find the best matching L1 candidate
   TVector3 selectedL13Vector;
@@ -139,28 +139,25 @@ else{
   for(auto aCand: myL1Coll){
     bool pass = passQuality(aCand ,sysType, selType);    
     if(!pass) continue;
+    bool isOMTFAcceptance = fabs(aCand.etaValue())>0.83 && fabs(aCand.etaValue())<1.24;
     double phiValue = aCand.phiValue();
     if(phiValue>M_PI) phiValue-=2*M_PI;
     
     double dEta = std::abs(aRecoMuon3Vector.Eta()-aCand.etaValue());
     double dPhi = std::abs(aRecoMuon3Vector.Phi()-phiValue);
-    
+    if(dPhi > 2*M_PI) dPhi=-2*M_PI;
     double delta = sqrt(dEta*dEta + dPhi*dPhi);
     if(delta<deltaR && selectedCand.ptValue()<aCand.ptValue()){
       deltaR = delta;
       selectedCand = aCand;
-     if(sysType=="uGMT"){
-      bool isOMTFAcceptance = fabs(selectedCand.etaValue())>0.83 && fabs(selectedCand.etaValue())<1.24;
-      if(isOMTFAcceptance){
-      selectedL13Vector.SetPtEtaPhi(selectedCand.ptValue(), selectedCand.etaValue(), selectedCand.phiValue());
-     }
-     }
+     if(sysType=="uGMT" && isOMTFAcceptance){selectedL13Vector.SetPtEtaPhi(selectedCand.ptValue(), selectedCand.etaValue(), selectedCand.phiValue());}
      else{
-      selectedL13Vector.SetPtEtaPhi(selectedCand.ptValue(), selectedCand.etaValue(), selectedCand.phiValue());
-      selectedL13VectorUC.SetPtEtaPhi(selectedCand.ptUnconstrainedValue(), selectedCand.etaValue(), selectedCand.phiValue());
+     selectedL13Vector.SetPtEtaPhi(selectedCand.ptValue(), selectedCand.etaValue(), selectedCand.phiValue());
+     selectedL13VectorUC.SetPtEtaPhi(selectedCand.ptUnconstrainedValue(), selectedCand.etaValue(), selectedCand.phiValue());
      }
-            
-    }    
+          
+    }
+    
   }
 }
   
@@ -174,9 +171,9 @@ else{
   tmpName = hName+"RecoMuonPtVsL1Pt";
   myHistos_->fill2DHistogram(tmpName, aRecoMuon3Vector.Pt(), selectedL13Vector.Pt());
 
-  bool  passPtCutUC = selectedL13VectorUC.Pt()>=ptCut && selectedL13VectorUC.Pt()>0;
-  tmpName = hName+"PtUC"+std::to_string(ptCut);
-  myHistos_->fill2DHistogram(tmpName, aRecoMuon3Vector.Pt(), passPtCutUC);
+ bool  passPtCutUC = selectedL13VectorUC.Pt()>=ptCut && selectedL13VectorUC.Pt()>0;
+ tmpName = hName+"PtUC"+std::to_string(ptCut);
+ myHistos_->fill2DHistogram(tmpName, aRecoMuon3Vector.Pt(), passPtCutUC);
 
   
   //Generic eff vs selected variable calculated for muons on plateau
@@ -261,6 +258,8 @@ void GMTAnalyzer::fillHistosForObjectVectors( const TVector3 & instantiatedVecto
     selType = std::string(TString::Format("Type%d",iType));
     fillTurnOnCurve(aRecoMuon3Vector, iCut, "OMTF", selType);
     fillTurnOnCurve(aRecoMuon3Vector, iCut, "uGMT", selType);
+    fillTurnOnCurve(aRecoMuon3Vector, iCut, "EMTF", selType);
+    fillTurnOnCurve(aRecoMuon3Vector, iCut, "BMTF", selType);
   }
 
 
